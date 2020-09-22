@@ -13,12 +13,12 @@ mod base {
 mod evaluable {
     use crate::{
         base::{expression::Expression, symbols::variable::Variable},
-        manipulation::evaluate::Evaluable,
+        manipulation::numeric_evaluation::NumericEvaluable,
     };
 
     #[test]
     fn not_evaluable() {
         let mut x: Expression = Variable::new(String::from("x"));
-        assert!(x.evaluate().is_err());
+        assert!(x.into_num().is_err());
     }
 }

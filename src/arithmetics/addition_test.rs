@@ -2,7 +2,7 @@
 mod evaluable {
     use crate::{
         base::symbols::{constant::Constant, number::Number, variable::Variable},
-        manipulation::evaluate::Evaluable,
+        manipulation::numeric_evaluation::NumericEvaluable,
     };
 
     #[test]
@@ -11,8 +11,8 @@ mod evaluable {
         let two = Number::new(2.0);
         let mut sum = one + two;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 3.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 3.0);
     }
 
     #[test]
@@ -22,8 +22,8 @@ mod evaluable {
             sum = sum + Number::new(1.0);
         }
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 10.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 10.0);
     }
 
     #[test]
@@ -32,8 +32,8 @@ mod evaluable {
         let two = Number::new(2.0);
         let mut sum = constant_c + two;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 3.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 3.0);
     }
 
     #[test]
@@ -42,7 +42,7 @@ mod evaluable {
         let two = Number::new(2.0);
         let mut sum = var_x + two;
 
-        assert!(sum.evaluate().is_err());
+        assert!(sum.into_num().is_err());
     }
 }
 

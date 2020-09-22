@@ -19,16 +19,16 @@ mod base {
 mod evaluable {
     use crate::{
         base::{expression::Expression, symbols::number::Number},
-        manipulation::evaluate::Evaluable,
+        manipulation::numeric_evaluation::NumericEvaluable,
     };
 
     #[test]
     fn not_evaluable() {
         let mut x: Expression = Number::new(1.0);
-        assert!(x.evaluate().is_ok());
-        assert_eq!(x.evaluate().unwrap(), 1.0);
+        assert!(x.into_num().is_ok());
+        assert_eq!(x.into_num().unwrap(), 1.0);
 
         let mut x: Expression = Number::new(143.0);
-        assert_eq!(x.evaluate().unwrap(), 143.0);
+        assert_eq!(x.into_num().unwrap(), 143.0);
     }
 }

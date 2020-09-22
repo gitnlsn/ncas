@@ -1,14 +1,21 @@
-use crate::manipulation::{differentiate::Differentiable, evaluate::Evaluable};
+use crate::manipulation::{
+    differentiate::Differentiable, expand::Expandable, numeric_evaluation::NumericEvaluable,
+};
 
-use std::cell::RefCell;
 use std::fmt::{Debug, Display};
 
 /**
  * Minimal representative value
  */
-pub trait Symbol: Debug + Display + Evaluable {
+pub trait Symbol: Debug + Display + NumericEvaluable {
     fn label(&self) -> String;
     fn value(&self) -> Option<f64>;
+}
+
+impl Clone for Box<dyn Symbol> {
+    fn clone(&self) -> Self {
+        self.clone()
+    }
 }
 
 impl Eq for dyn Symbol {}
@@ -22,17 +29,24 @@ impl PartialEq for dyn Symbol {
  *  Associations between two Symbols
  *      - associativity
  */
-pub trait Association: Debug + Display + Evaluable /* + Expandable + Simplifiable + Sortable */ {
-    fn right_hand_side(&self) -> &RefCell<Expression>;
-    fn left_hand_side(&self) -> &RefCell<Expression>;
+pub trait Association: Debug + Display + NumericEvaluable + Expandable
+/* + Simplifiable + Sortable */
+{
+    fn right_hand_side(&self) -> &Box<Expression>;
+    fn left_hand_side(&self) -> &Box<Expression>;
+}
+
+impl Clone for Box<dyn Association> {
+    fn clone(&self) -> Self {
+        self.clone()
+    }
 }
 
 /**
  *  Operations applied on an Expression
  */
-pub trait Operation /* : Display + Evaluable + Replaceable + Expandable + Simplifiable + Sortable */
-{
-    fn argument(&self) -> &RefCell<Expression>;
+pub trait Operation /* Debug + Display + Evaluable + Expandable */ /* + Simplifiable + Sortable */ {
+    fn argument(&self) -> &Box<Expression>;
 }
 
 /**
@@ -41,14 +55,14 @@ pub trait Operation /* : Display + Evaluable + Replaceable + Expandable + Simpli
 pub trait AssociativeOperation
 /* : Evaluable + Display + Replaceable + Expandable + Simplifiable + Sortable */
 {
-    fn argument(&self) -> &RefCell<Expression>;
-    fn modifier(&self) -> &RefCell<Expression>;
+    fn argument(&self) -> &Box<Expression>;
+    fn modifier(&self) -> &Box<Expression>;
 }
 
 /**
  * Symbols related through composition of Associations, Operations and AssociativeOperations
  */
-#[derive(std::fmt::Debug)]
+#[derive(std::fmt::Debug, Clone)]
 pub enum Expression {
     // AssociativeOperation(Box<dyn AssociativeOperation>),
     // Operation(Box<dyn Operation>),

@@ -1,45 +1,26 @@
 use crate::base::expression::{Association, Expression};
 
-use crate::manipulation::{differentiate::Differentiable, evaluate::Evaluable};
-
-use std::cell::RefCell;
-
 #[derive(std::fmt::Debug)]
 pub struct Subtraction {
-    right_hand_side: RefCell<Expression>,
-    left_hand_side: RefCell<Expression>,
+    right_hand_side: Box<Expression>,
+    left_hand_side: Box<Expression>,
+}
+
+impl Subtraction {
+    pub fn new(left_hand_side: Expression, right_hand_side: Expression) -> Expression {
+        Expression::Association(Box::new(Self {
+            left_hand_side: Box::new(left_hand_side),
+            right_hand_side: Box::new(right_hand_side),
+        }))
+    }
 }
 
 impl Association for Subtraction {
-    fn right_hand_side(&self) -> &RefCell<Expression> {
+    fn right_hand_side(&self) -> &Box<Expression> {
         &self.right_hand_side
     }
-    fn left_hand_side(&self) -> &RefCell<Expression> {
+    fn left_hand_side(&self) -> &Box<Expression> {
         &self.left_hand_side
-    }
-}
-
-impl Evaluable for Subtraction {
-    fn evaluate(&mut self) -> Result<f64, Expression> {
-        let possible_lhs_value = match self.left_hand_side.get_mut() {
-            Expression::Association(association) => association.evaluate(),
-            Expression::Symbol(symbol) => symbol.evaluate(),
-        };
-
-        let possible_rhs_value = match self.right_hand_side.get_mut() {
-            Expression::Association(association) => association.evaluate(),
-            Expression::Symbol(symbol) => symbol.evaluate(),
-        };
-
-        if possible_lhs_value.is_ok() && possible_rhs_value.is_ok() {
-            return Ok(possible_lhs_value.unwrap() - possible_rhs_value.unwrap());
-        }
-
-        if possible_lhs_value.is_err() {
-            return possible_lhs_value;
-        } else {
-            return possible_rhs_value;
-        }
     }
 }
 
@@ -50,8 +31,8 @@ impl std::ops::Sub for Expression {
     type Output = Expression;
     fn sub(self, other: Expression) -> Expression {
         Expression::Association(Box::new(Subtraction {
-            left_hand_side: RefCell::new(self),
-            right_hand_side: RefCell::new(other),
+            left_hand_side: Box::new(self),
+            right_hand_side: Box::new(other),
         }))
     }
 }
@@ -61,11 +42,6 @@ impl std::ops::Sub for Expression {
 */
 impl std::fmt::Display for Subtraction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} - {}",
-            self.left_hand_side.borrow(),
-            self.right_hand_side.borrow()
-        )
+        write!(f, "{} - {}", self.left_hand_side, self.right_hand_side)
     }
 }

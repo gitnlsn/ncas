@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod evaluable {
     use crate::{
-        base::symbols::{number::Number},
-        manipulation::evaluate::Evaluable,
+        base::symbols::number::Number, manipulation::numeric_evaluation::NumericEvaluable,
     };
 
     #[test]
@@ -12,16 +11,16 @@ mod evaluable {
         let three = Number::new(3.0);
         let mut sum = one + two * three;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 7.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 7.0);
 
         let one = Number::new(1.0);
         let two = Number::new(2.0);
         let three = Number::new(3.0);
         let mut sum = one * two + three;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 5.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 5.0);
     }
 
     #[test]
@@ -31,16 +30,16 @@ mod evaluable {
         let three = Number::new(3.0);
         let mut sum = one - two * three;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), -5.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), -5.0);
 
         let one = Number::new(1.0);
         let two = Number::new(2.0);
         let three = Number::new(3.0);
         let mut sum = one * two - three;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), -1.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), -1.0);
     }
 
     #[test]
@@ -50,16 +49,16 @@ mod evaluable {
         let four = Number::new(4.0);
         let mut sum = one + two / four;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 1.5);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 1.5);
 
         let one = Number::new(1.0);
         let two = Number::new(2.0);
         let four = Number::new(4.0);
         let mut sum = one / two + four;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), 4.5);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), 4.5);
     }
 
     #[test]
@@ -69,15 +68,15 @@ mod evaluable {
         let four = Number::new(4.0);
         let mut sum = one - two * four;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), -7.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), -7.0);
 
         let one = Number::new(1.0);
         let two = Number::new(2.0);
         let four = Number::new(4.0);
         let mut sum = one * two - four;
 
-        assert!(sum.evaluate().is_ok());
-        assert_eq!(sum.evaluate().unwrap(), -2.0);
+        assert!(sum.into_num().is_ok());
+        assert_eq!(sum.into_num().unwrap(), -2.0);
     }
 }

@@ -1,5 +1,3 @@
-use crate::manipulation::evaluate::Evaluable;
-
 use crate::base::expression::{Expression, Symbol};
 
 /**
@@ -29,15 +27,6 @@ impl Symbol for Variable {
     }
     fn value(&self) -> Option<f64> {
         self.value
-    }
-}
-
-impl Evaluable for Variable {
-    fn evaluate(&mut self) -> Result<f64, Expression> {
-        match self.value {
-            Some(value) => return Ok(value),
-            None => return Err(Expression::Symbol(Box::new(self.clone()))),
-        }
     }
 }
 

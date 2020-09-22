@@ -19,8 +19,8 @@ pub mod base {
 
 pub mod manipulation {
     pub mod differentiate;
-    pub mod evaluate;
-    // pub mod expandable;
+    pub mod expand;
+    pub mod numeric_evaluation;
     // pub mod replaceable;
     // pub mod simplifiable;
     // pub mod sortable;
@@ -33,6 +33,8 @@ pub mod arithmetics {
     mod division_test;
     pub mod multiplication;
     mod multiplication_test;
+    pub mod negation;
+    pub mod negation_test;
     mod precedence_test;
     pub mod subtraction;
     mod subtraction_test;

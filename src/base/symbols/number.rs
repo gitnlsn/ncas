@@ -1,5 +1,3 @@
-use crate::manipulation::{evaluate::Evaluable};
-
 use crate::base::expression::{Expression, Symbol};
 
 /**
@@ -29,12 +27,6 @@ impl Symbol for Number {
     }
     fn value(&self) -> Option<f64> {
         self.value
-    }
-}
-
-impl Evaluable for Number {
-    fn evaluate(&mut self) -> Result<f64, Expression> {
-        Ok(self.value.expect("Expected number to hold a f64 value"))
     }
 }
 
