@@ -19,6 +19,11 @@ impl AsExpression for isize {
     }
 }
 
+/* 
+    TODO: 
+        - Implement a proper expression interpreter when parsing a strings
+        - this is a temporary handle: "sin(a^2)" will generate a Variable!
+*/
 impl AsExpression for String {
     fn as_expression(self) -> Expression {
         Variable::new(self)

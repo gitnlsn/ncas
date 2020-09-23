@@ -2,7 +2,7 @@ use crate::manipulation::{
     differentiate::Differentiable,
     expand::Expandable,
     expression_measure::ExpressionMeasure,
-    identifiable::{Identifiable},
+    identifiable::{Identifiable, Identity},
     numeric_evaluation::NumericEvaluable,
 };
 
@@ -95,6 +95,12 @@ impl Display for Expression {
 
 impl Eq for Expression {}
 impl PartialEq for Expression {
+    /*
+        TODO:
+            - this is a temporary definition
+            - Implement a proper expression comparison, considering simplification
+            - assert_eq!(Number::new(1) + Number::new(1), Number::new(2)) fails
+    */
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Expression::Symbol(s1), Expression::Symbol(s2)) => {
@@ -102,13 +108,19 @@ impl PartialEq for Expression {
             }
             (Expression::Association(a1), Expression::Association(a2)) => {
                 if a1.id() == a2.id() {
+                    let is_commutative = match a1.id() {
+                        Identity::Addition => true,
+                        Identity::Multiplication => true,
+                        _ => false,
+                    };
+
                     let a1_rhs = a1.right_hand_side();
                     let a1_lhs = a1.left_hand_side();
                     let a2_rhs = a2.right_hand_side();
                     let a2_lhs = a2.left_hand_side();
 
                     return (a1_lhs == a2_lhs && a1_rhs == a2_rhs)
-                        || (a1_lhs == a2_rhs && a1_rhs == a2_lhs);
+                        || (is_commutative && a1_lhs == a2_rhs && a1_rhs == a2_lhs);
                 }
                 return false;
             }
