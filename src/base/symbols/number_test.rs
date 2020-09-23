@@ -24,11 +24,11 @@ mod evaluable {
 
     #[test]
     fn not_evaluable() {
-        let mut x: Expression = Number::new(1.0);
+        let x: Expression = Number::new(1.0);
         assert!(x.into_num().is_ok());
         assert_eq!(x.into_num().unwrap(), 1.0);
 
-        let mut x: Expression = Number::new(143.0);
+        let x: Expression = Number::new(143.0);
         assert_eq!(x.into_num().unwrap(), 143.0);
     }
 }

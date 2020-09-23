@@ -18,7 +18,7 @@ mod evaluable {
 
     #[test]
     fn not_evaluable() {
-        let mut x: Expression = Variable::new(String::from("x"));
+        let x: Expression = Variable::new(String::from("x"));
         assert!(x.into_num().is_err());
     }
 }

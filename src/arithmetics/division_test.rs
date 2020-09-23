@@ -9,7 +9,7 @@ mod evaluable {
     fn divides_two_numbers() {
         let one = Number::new(1.0);
         let two = Number::new(2.0);
-        let mut sum = one / two;
+        let sum = one / two;
 
         assert!(sum.into_num().is_ok());
         assert_eq!(sum.into_num().unwrap(), 0.5);
@@ -30,7 +30,7 @@ mod evaluable {
     fn divides_constants() {
         let constant_c = Constant::new(String::from("C"), 1.0);
         let two = Number::new(2.0);
-        let mut sum = constant_c / two;
+        let sum = constant_c / two;
 
         assert!(sum.into_num().is_ok());
         assert_eq!(sum.into_num().unwrap(), 0.5);
@@ -40,30 +40,8 @@ mod evaluable {
     fn do_not_add_variable() {
         let var_x = Variable::new(String::from("x"));
         let two = Number::new(2.0);
-        let mut sum = var_x / two;
+        let sum = var_x / two;
 
         assert!(sum.into_num().is_err());
-    }
-}
-
-#[cfg(test)]
-mod formatable {
-    use crate::base::symbols::number::Number;
-
-    #[test]
-    fn formats_with_plus_symbol() {
-        let one = Number::new(1.0);
-        let two = Number::new(2.0);
-        let sum = one / two;
-        assert_eq!(format!("{}", sum), String::from("1 / 2"));
-
-        let mut sum = Number::new(1024.0);
-        for _ in 0..10 {
-            sum = sum / Number::new(2.0);
-        }
-        assert_eq!(
-            format!("{}", sum),
-            String::from("1024 / 2 / 2 / 2 / 2 / 2 / 2 / 2 / 2 / 2 / 2")
-        );
     }
 }

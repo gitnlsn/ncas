@@ -22,6 +22,12 @@ impl Association for Division {
     fn left_hand_side(&self) -> &Box<Expression> {
         &self.left_hand_side
     }
+    fn boxed_clone(&self) -> Box<dyn Association> {
+        Box::new(Self {
+            left_hand_side: self.left_hand_side.clone(),
+            right_hand_side: self.right_hand_side.clone(),
+        })
+    }
 }
 
 /**

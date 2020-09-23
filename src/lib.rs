@@ -20,7 +20,11 @@ pub mod base {
 pub mod manipulation {
     pub mod differentiate;
     pub mod expand;
+    pub mod expand_test;
+    pub mod expression_measure;
+    pub mod expression_measure_test;
     pub mod numeric_evaluation;
+    pub mod identifiable;
     // pub mod replaceable;
     // pub mod simplifiable;
     // pub mod sortable;
@@ -33,9 +37,9 @@ pub mod arithmetics {
     mod division_test;
     pub mod multiplication;
     mod multiplication_test;
-    pub mod negation;
-    pub mod negation_test;
     mod precedence_test;
+    pub mod primitives_interface;
+    pub mod primitives_interface_test;
     pub mod subtraction;
     mod subtraction_test;
 }

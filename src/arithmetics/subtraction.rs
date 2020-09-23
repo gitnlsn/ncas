@@ -22,6 +22,12 @@ impl Association for Subtraction {
     fn left_hand_side(&self) -> &Box<Expression> {
         &self.left_hand_side
     }
+    fn boxed_clone(&self) -> Box<dyn Association> {
+        Box::new(Self {
+            left_hand_side: self.left_hand_side.clone(),
+            right_hand_side: self.right_hand_side.clone(),
+        })
+    }
 }
 
 /**
@@ -42,6 +48,6 @@ impl std::ops::Sub for Expression {
 */
 impl std::fmt::Display for Subtraction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} - {}", self.left_hand_side, self.right_hand_side)
+        write!(f, "({} - {})", self.left_hand_side, self.right_hand_side)
     }
 }

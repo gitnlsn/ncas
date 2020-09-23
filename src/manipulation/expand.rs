@@ -79,9 +79,9 @@ impl Expandable for Multiplication {
                     (lhs.as_ref(), rhs.as_ref())
                 {
                     let t1 = lhs.left_hand_side().as_ref();
-                    let t2 = lhs.left_hand_side().as_ref();
+                    let t2 = lhs.right_hand_side().as_ref();
                     let t3 = rhs.left_hand_side().as_ref();
-                    let t4 = rhs.left_hand_side().as_ref();
+                    let t4 = rhs.right_hand_side().as_ref();
 
                     let expanded_t1 = t1.expand();
                     let expanded_t2 = t2.expand();
@@ -110,7 +110,7 @@ impl Expandable for Multiplication {
                 ) = (lhs.as_ref(), rhs.as_ref())
                 {
                     let t1 = additive_term.left_hand_side().as_ref();
-                    let t2 = additive_term.left_hand_side().as_ref();
+                    let t2 = additive_term.right_hand_side().as_ref();
 
                     let expanded_multiplicative = multiplicative_term.expand();
                     let expanded_t1 = t1.expand();
@@ -132,7 +132,7 @@ impl Expandable for Multiplication {
                 ) = (lhs.as_ref(), rhs.as_ref())
                 {
                     let t1 = additive_term.left_hand_side().as_ref();
-                    let t2 = additive_term.left_hand_side().as_ref();
+                    let t2 = additive_term.right_hand_side().as_ref();
 
                     let expanded_multiplicative = multiplicative_term.expand();
                     let expanded_t1 = t1.expand();
@@ -146,7 +146,44 @@ impl Expandable for Multiplication {
                     panic!("Expected multiplicative and additive terms to hold on association expressions");
                 }
             }
+            (Expandability::Symbolic, Expandability::Additive) => {
+                /* (a*b) * (c+d) = a*b*c + a*b*d */
+                if let (Expression::Symbol(symbol), Expression::Association(additive_term)) =
+                    (lhs.as_ref(), rhs.as_ref())
+                {
+                    let t1 = additive_term.left_hand_side().as_ref();
+                    let t2 = additive_term.right_hand_side().as_ref();
 
+                    let expanded_t1 = t1.expand();
+                    let expanded_t2 = t2.expand();
+
+                    return Addition::new(
+                        Multiplication::new(Expression::Symbol(symbol.clone()), expanded_t1),
+                        Multiplication::new(Expression::Symbol(symbol.clone()), expanded_t2),
+                    );
+                } else {
+                    panic!("Expected multiplicative and additive terms to hold on association expressions");
+                }
+            }
+            (Expandability::Additive, Expandability::Symbolic) => {
+                /* (a*b) * (c+d) = a*b*c + a*b*d */
+                if let (Expression::Association(additive_term), Expression::Symbol(symbol)) =
+                    (lhs.as_ref(), rhs.as_ref())
+                {
+                    let t1 = additive_term.left_hand_side().as_ref();
+                    let t2 = additive_term.right_hand_side().as_ref();
+
+                    let expanded_t1 = t1.expand();
+                    let expanded_t2 = t2.expand();
+
+                    return Addition::new(
+                        Multiplication::new(expanded_t1, Expression::Symbol(symbol.clone())),
+                        Multiplication::new(expanded_t2, Expression::Symbol(symbol.clone())),
+                    );
+                } else {
+                    panic!("Expected multiplicative and additive terms to hold on association expressions");
+                }
+            }
             _ => {
                 /*
                     Default matcher holds among {
@@ -172,10 +209,8 @@ impl Expandable for Division {
         let rhs = self.right_hand_side();
         match (lhs.expandability(), rhs.expandability()) {
             (Expandability::Additive, _) => {
-                if let (
-                    Expression::Association(nominator),
-                    Expression::Association(demoninator),
-                ) = (lhs.as_ref(), rhs.as_ref())
+                if let (Expression::Association(nominator), Expression::Association(demoninator)) =
+                    (lhs.as_ref(), rhs.as_ref())
                 {
                     let t1 = nominator.left_hand_side().as_ref();
                     let t2 = nominator.left_hand_side().as_ref();

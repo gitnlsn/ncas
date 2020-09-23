@@ -1,4 +1,4 @@
-use crate::base::expression::{Expression, Symbol};
+use crate::base::expression::{Expression, Symbol, SymbolType};
 
 /**
  * Symbol implementation
@@ -22,11 +22,20 @@ impl Number {
  * Symbol Implementation
  */
 impl Symbol for Number {
+    fn symbol_type(&self) -> SymbolType {
+        SymbolType::Number
+    }
     fn label(&self) -> String {
         self.label.clone()
     }
     fn value(&self) -> Option<f64> {
         self.value
+    }
+    fn boxed_clone(&self) -> Box<dyn Symbol> {
+        Box::new(Self {
+            label: self.label.clone(),
+            value: self.value.clone(),
+        })
     }
 }
 
