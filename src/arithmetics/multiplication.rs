@@ -1,31 +1,56 @@
-use crate::base::expression::{Association, Expression};
+use crate::base::expression::{CommutativeAssociation, Expression};
+use crate::manipulation::identifiable::{Identifiable, Identity};
 
 #[derive(std::fmt::Debug)]
 pub struct Multiplication {
-    right_hand_side: Box<Expression>,
-    left_hand_side: Box<Expression>,
+    items: Vec<Expression>,
 }
 
 impl Multiplication {
-    pub fn new(left_hand_side: Expression, right_hand_side: Expression) -> Expression {
-        Expression::Association(Box::new(Self {
-            left_hand_side: Box::new(left_hand_side),
-            right_hand_side: Box::new(right_hand_side),
-        }))
+    pub fn new(factors: Vec<Expression>) -> Expression {
+        use crate::base::symbols::number::Number;
+        if factors.len() == 0 {
+            return Number::new(1.0);
+        }
+
+        if factors.len() == 1 {
+            let single_addend = factors.iter().cloned().next().unwrap();
+            return single_addend;
+        }
+
+        let mut items_vec: Vec<Expression> = Vec::new();
+
+        for addend in factors.iter() {
+            match addend.id() {
+                Identity::Multiplication => {
+                    if let Expression::CommutativeAssociation(multiplication) = addend {
+                        items_vec.append(&mut multiplication.items().iter().cloned().collect());
+                    }
+                }
+                Identity::Number => {
+                    if let Expression::Symbol(number) = addend {
+                        if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
+                            continue;
+                        }
+                    }
+                    items_vec.push(addend.clone());
+                }
+                _ => {
+                    items_vec.push(addend.clone());
+                }
+            }
+        }
+        return Expression::CommutativeAssociation(Box::new(Self { items: items_vec }));
     }
 }
 
-impl Association for Multiplication {
-    fn right_hand_side(&self) -> &Box<Expression> {
-        &self.right_hand_side
+impl CommutativeAssociation for Multiplication {
+    fn items(&self) -> &Vec<Expression> {
+        &self.items
     }
-    fn left_hand_side(&self) -> &Box<Expression> {
-        &self.left_hand_side
-    }
-    fn boxed_clone(&self) -> Box<dyn Association> {
+    fn boxed_clone(&self) -> Box<dyn CommutativeAssociation> {
         Box::new(Self {
-            left_hand_side: self.left_hand_side.clone(),
-            right_hand_side: self.right_hand_side.clone(),
+            items: self.items.clone(),
         })
     }
 }
@@ -36,10 +61,28 @@ impl Association for Multiplication {
 impl std::ops::Mul for Expression {
     type Output = Expression;
     fn mul(self, other: Expression) -> Expression {
-        Expression::Association(Box::new(Multiplication {
-            left_hand_side: Box::new(self),
-            right_hand_side: Box::new(other),
-        }))
+        Multiplication::new(vec![self, other])
+    }
+}
+
+impl std::ops::Mul<&Expression> for Expression {
+    type Output = Expression;
+    fn mul(self, other: &Expression) -> Expression {
+        Multiplication::new(vec![self, other.clone()])
+    }
+}
+
+impl std::ops::Mul<&Expression> for &Expression {
+    type Output = Expression;
+    fn mul(self, other: &Expression) -> Expression {
+        Multiplication::new(vec![self.clone(), other.clone()])
+    }
+}
+
+impl std::ops::Mul<Expression> for &Expression {
+    type Output = Expression;
+    fn mul(self, other: Expression) -> Expression {
+        Multiplication::new(vec![self.clone(), other])
     }
 }
 
@@ -48,6 +91,16 @@ impl std::ops::Mul for Expression {
 */
 impl std::fmt::Display for Multiplication {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} * {}", self.left_hand_side, self.right_hand_side)
+        if self.items().is_empty() {
+            return write!(f, "");
+        }
+        let mut iterator = self.items.iter();
+        if let Some(first_item) = iterator.next() {
+            write!(f, "({}", first_item).expect("");
+        }
+        while let Some(item) = iterator.next() {
+            write!(f, " * {}", item).expect("");
+        }
+        write!(f, ")")
     }
 }

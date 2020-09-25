@@ -43,6 +43,36 @@ impl std::ops::Div for Expression {
     }
 }
 
+impl std::ops::Div<&Expression> for Expression {
+    type Output = Expression;
+    fn div(self, other: &Expression) -> Expression {
+        Expression::Association(Box::new(Division {
+            left_hand_side: Box::new(self),
+            right_hand_side: Box::new(other.clone()),
+        }))
+    }
+}
+
+impl std::ops::Div<&Expression> for &Expression {
+    type Output = Expression;
+    fn div(self, other: &Expression) -> Expression {
+        Expression::Association(Box::new(Division {
+            left_hand_side: Box::new(self.clone()),
+            right_hand_side: Box::new(other.clone()),
+        }))
+    }
+}
+
+impl std::ops::Div<Expression> for &Expression {
+    type Output = Expression;
+    fn div(self, other: Expression) -> Expression {
+        Expression::Association(Box::new(Division {
+            left_hand_side: Box::new(self.clone()),
+            right_hand_side: Box::new(other),
+        }))
+    }
+}
+
 /*
     Debug implementation
 */

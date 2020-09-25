@@ -11,6 +11,8 @@ mod evaluable {
         let two = Number::new(2.0);
         let sum = one + two;
 
+        println!("{}", sum);
+
         assert!(sum.into_num().is_ok());
         assert_eq!(sum.into_num().unwrap(), 3.0);
     }

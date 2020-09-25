@@ -7,6 +7,7 @@ use crate::base::expression::{Expression, Symbol, SymbolType};
 pub struct Variable {
     label: String,
     value: Option<f64>,
+    expression: Option<Expression>
 }
 
 impl Variable {
@@ -14,7 +15,14 @@ impl Variable {
         Expression::Symbol(Box::new(Self {
             label: label,
             value: None,
+            expression: None,
         }))
+    }
+    pub fn set_expression(&mut self, e: Expression) {
+        self.expression = Some(e);
+    }
+    pub fn get_expression(&self) -> Option<Expression> {
+        self.expression.clone()
     }
 }
 
@@ -29,12 +37,19 @@ impl Symbol for Variable {
         self.label.clone()
     }
     fn value(&self) -> Option<f64> {
+        use crate::manipulation::numeric_evaluation::NumericEvaluable;
+        if let Some(expression) = self.expression.clone() {
+            if let Ok(value) = expression.clone().into_num() {
+                return Some(value);
+            }
+        }
         self.value
     }
     fn boxed_clone(&self) -> Box<dyn Symbol> {
         Box::new(Self {
             label: self.label.clone(),
             value: self.value.clone(),
+            expression: self.expression.clone()
         })
     }
 }

@@ -43,3 +43,7 @@ pub mod arithmetics {
     pub mod subtraction;
     mod subtraction_test;
 }
+
+pub mod exponential {
+    pub mod power;
+}

@@ -43,6 +43,36 @@ impl std::ops::Sub for Expression {
     }
 }
 
+impl std::ops::Sub<&Expression> for Expression {
+    type Output = Expression;
+    fn sub(self, other: &Expression) -> Expression {
+        Expression::Association(Box::new(Subtraction {
+            left_hand_side: Box::new(self),
+            right_hand_side: Box::new(other.clone()),
+        }))
+    }
+}
+
+impl std::ops::Sub<&Expression> for &Expression {
+    type Output = Expression;
+    fn sub(self, other: &Expression) -> Expression {
+        Expression::Association(Box::new(Subtraction {
+            left_hand_side: Box::new(self.clone()),
+            right_hand_side: Box::new(other.clone()),
+        }))
+    }
+}
+
+impl std::ops::Sub<Expression> for &Expression {
+    type Output = Expression;
+    fn sub(self, other: Expression) -> Expression {
+        Expression::Association(Box::new(Subtraction {
+            left_hand_side: Box::new(self.clone()),
+            right_hand_side: Box::new(other),
+        }))
+    }
+}
+
 /*
     Debug implementation
 */

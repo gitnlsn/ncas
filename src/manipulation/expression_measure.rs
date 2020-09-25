@@ -1,11 +1,3 @@
-use crate::{
-    arithmetics::{
-        addition::Addition, division::Division, multiplication::Multiplication,
-        subtraction::Subtraction,
-    },
-    base::expression::{Association, Expression, SymbolType},
-};
-
 /**
  * Overall Histogram data
  */
@@ -13,6 +5,7 @@ pub struct Histogram {
     pub expression: TreeData,
     pub symbols: Symbols,
     pub arithmetics: Arithmetics,
+    pub exponential: Exponential,
 }
 
 impl std::ops::Add for Histogram {
@@ -22,6 +15,7 @@ impl std::ops::Add for Histogram {
             expression: self.expression + other.expression,
             symbols: self.symbols + other.symbols,
             arithmetics: self.arithmetics + other.arithmetics,
+            exponential: self.exponential + other.exponential,
         }
     }
 }
@@ -33,6 +27,7 @@ impl std::ops::Sub for Histogram {
             expression: self.expression - other.expression,
             symbols: self.symbols - other.symbols,
             arithmetics: self.arithmetics - other.arithmetics,
+            exponential: self.exponential - other.exponential,
         }
     }
 }
@@ -43,6 +38,7 @@ impl Histogram {
             expression: TreeData::new(1),
             symbols: symbols_tree,
             arithmetics: Arithmetics::new(),
+            exponential: Exponential::new(),
         }
     }
 
@@ -70,6 +66,11 @@ impl Histogram {
         }
         if self.symbols.numbers.quantity > 0 {
             self.symbols.numbers.max_depth += 1;
+        }
+
+        /* Symbols depth */
+        if self.exponential.power.quantity > 0 {
+            self.exponential.power.max_depth += 1;
         }
 
         /* Expression depth */
@@ -124,6 +125,41 @@ impl Arithmetics {
 }
 
 /**
+ * Exponential tree
+ */
+pub struct Exponential {
+    pub power: TreeData,
+    // pub log: TreeData,
+    // pub exp: TreeData,
+}
+
+impl std::ops::Add for Exponential {
+    type Output = Self;
+    fn add(self, other: Self) -> Self {
+        Self {
+            power: self.power + other.power,
+        }
+    }
+}
+
+impl std::ops::Sub for Exponential {
+    type Output = Self;
+    fn sub(self, other: Self) -> Self {
+        Self {
+            power: self.power - other.power,
+        }
+    }
+}
+
+impl Exponential {
+    pub fn new() -> Self {
+        Self {
+            power: TreeData::new(0),
+        }
+    }
+}
+
+/**
  * Symbols tree
  */
 pub struct Symbols {
@@ -155,6 +191,13 @@ impl std::ops::Sub for Symbols {
 }
 
 impl Symbols {
+    pub fn new() -> Self {
+        Self {
+            variables: TreeData::new(0),
+            constant: TreeData::new(0),
+            numbers: TreeData::new(0),
+        }
+    }
     pub fn variable() -> Self {
         Self {
             variables: TreeData::new(1),
@@ -224,30 +267,52 @@ impl TreeData {
 //     pub cotag: usize,
 // }
 
+/**
+ *  
+ */
 pub trait ExpressionMeasure {
     fn histogram(&self) -> Histogram;
 }
 
+// =================================== //
+//      Recursion on Expression        //
+// =================================== //
+use crate::base::expression::{
+    Association, AssociativeOperation, CommutativeAssociation, Expression, SymbolType,
+};
 impl ExpressionMeasure for Expression {
     fn histogram(&self) -> Histogram {
         match self {
+            Expression::CommutativeAssociation(a) => a.histogram(),
+            Expression::AssociativeOperation(a) => a.histogram(),
+            Expression::Association(a) => a.histogram(),
             Expression::Symbol(s) => match s.symbol_type() {
                 SymbolType::Constant => Histogram::new(Symbols::constant()),
                 SymbolType::Variable => Histogram::new(Symbols::variable()),
                 SymbolType::Number => Histogram::new(Symbols::number()),
             },
-            Expression::Association(a) => a.histogram(),
         }
     }
 }
 
+// =================================== //
+//              Arithmetics            //
+// =================================== //
+use crate::arithmetics::{
+    addition::Addition, division::Division, multiplication::Multiplication,
+    subtraction::Subtraction,
+};
 impl ExpressionMeasure for Addition {
     fn histogram(&self) -> Histogram {
-        let mut histogram = self.left_hand_side().histogram() + self.right_hand_side().histogram();
+        let mut histogram: Histogram = self
+            .items()
+            .iter()
+            .map(|item| item.histogram())
+            .fold(Histogram::new(Symbols::new()), |acc, new| acc + new);
 
         histogram.increase_depth();
 
-        histogram.arithmetics.addition.quantity += 1;
+        histogram.arithmetics.addition.quantity += (self.items().len() - 1) as isize;
         return histogram;
     }
 }
@@ -265,11 +330,15 @@ impl ExpressionMeasure for Subtraction {
 
 impl ExpressionMeasure for Multiplication {
     fn histogram(&self) -> Histogram {
-        let mut histogram = self.left_hand_side().histogram() + self.right_hand_side().histogram();
+        let mut histogram: Histogram = self
+            .items()
+            .iter()
+            .map(|item| item.histogram())
+            .fold(Histogram::new(Symbols::new()), |acc, new| acc + new);
 
         histogram.increase_depth();
 
-        histogram.arithmetics.multiplication.quantity += 1;
+        histogram.arithmetics.multiplication.quantity += (self.items().len() - 1) as isize;
         return histogram;
     }
 }
@@ -281,6 +350,21 @@ impl ExpressionMeasure for Division {
         histogram.increase_depth();
 
         histogram.arithmetics.division.quantity += 1;
+        return histogram;
+    }
+}
+
+// =================================== //
+//              Exponential            //
+// =================================== //
+use crate::exponential::power::Power;
+impl ExpressionMeasure for Power {
+    fn histogram(&self) -> Histogram {
+        let mut histogram = self.argument().histogram() + self.modifier().histogram();
+
+        histogram.increase_depth();
+
+        histogram.exponential.power.quantity += 1;
         return histogram;
     }
 }
