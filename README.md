@@ -1,5 +1,5 @@
 <html>
-<h1 align="center">Rust Delaunay Triangulation</h1>
+<h1 align="center">Rust Symbolic Algebraic</h1>
 <p align="center" >
 
 <img src="https://img.shields.io/badge/Language-Rust-red.svg" />
