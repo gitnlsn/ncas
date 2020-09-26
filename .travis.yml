@@ -1,0 +1,15 @@
+language: rust
+cache: cargo
+dist: bionic
+os: 
+  - linux
+  - osx
+# Run builds for all the supported trains
+rust:
+  - nightly
+  - beta
+  - stable
+# The main build
+script:
+  - cargo build
+  - cargo test
