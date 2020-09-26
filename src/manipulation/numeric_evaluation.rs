@@ -8,8 +8,9 @@ pub trait NumericEvaluable {
 // =================================== //
 //      Recursion on Expression        //
 // =================================== //
-use crate::base::expression::{
-    Association, AssociativeOperation, CommutativeAssociation, Expression, Symbol,
+use crate::base::{
+    association::Association, associative_operation::AssociativeOperation,
+    commutative_association::CommutativeAssociation, expression::Expression, symbol::Symbol,
 };
 impl NumericEvaluable for Expression {
     fn into_num(&self) -> Result<f64, Expression> {
@@ -25,7 +26,7 @@ impl NumericEvaluable for Expression {
 // =============================== //
 //              Symbols            //
 // =============================== //
-use crate::base::symbols::{constant::Constant, number::Number, variable::Variable};
+use crate::symbols::{constant::Constant, number::Number, variable::Variable};
 
 impl NumericEvaluable for Constant {
     fn into_num(&self) -> Result<f64, Expression> {
@@ -143,19 +144,17 @@ impl NumericEvaluable for Division {
 use crate::exponential::power::Power;
 impl NumericEvaluable for Power {
     fn into_num(&self) -> Result<f64, Expression> {
-        let possible_lhs_value = self.argument().into_num();
-        let possible_rhs_value = self.modifier().into_num();
+        let base = self.argument().into_num();
+        let exp = self.modifier().into_num();
 
-        if possible_lhs_value.is_ok() && possible_rhs_value.is_ok() {
-            return Ok(possible_lhs_value
-                .unwrap()
-                .powf(possible_rhs_value.unwrap()));
+        if base.is_ok() && exp.is_ok() {
+            return Ok(base.unwrap().powf(exp.unwrap()));
         }
 
-        if possible_lhs_value.is_err() {
-            return possible_lhs_value;
+        if base.is_err() {
+            return base;
         } else {
-            return possible_rhs_value;
+            return exp;
         }
     }
 }

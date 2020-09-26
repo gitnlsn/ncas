@@ -1,5 +1,5 @@
-use crate::base::{
-    expression::Expression,
+use crate::{
+    base::expression::Expression,
     symbols::{number::Number, variable::Variable},
 };
 
@@ -509,5 +509,120 @@ impl std::ops::Div<&Expression> for String {
     type Output = Expression;
     fn div(self, other: &Expression) -> Expression {
         Variable::new(self) / other
+    }
+}
+
+// =================== //
+//        Power        //
+// =================== //
+impl std::ops::BitXor<isize> for Expression {
+    type Output = Expression;
+    fn bitxor(self, other: isize) -> Expression {
+        self ^ Number::new(other as f64)
+    }
+}
+
+impl std::ops::BitXor<f64> for Expression {
+    type Output = Expression;
+    fn bitxor(self, other: f64) -> Expression {
+        self ^ Number::new(other)
+    }
+}
+
+impl std::ops::BitXor<String> for Expression {
+    type Output = Expression;
+    fn bitxor(self, other: String) -> Expression {
+        self ^ Variable::new(other)
+    }
+}
+
+impl std::ops::BitXor<&str> for Expression {
+    type Output = Expression;
+    fn bitxor(self, other: &str) -> Expression {
+        self ^ Variable::new(String::from(other))
+    }
+}
+
+impl std::ops::BitXor<Expression> for isize {
+    type Output = Expression;
+    fn bitxor(self, other: Expression) -> Expression {
+        Number::new(self as f64) ^ other
+    }
+}
+
+impl std::ops::BitXor<Expression> for f64 {
+    type Output = Expression;
+    fn bitxor(self, other: Expression) -> Expression {
+        Number::new(self) ^ other
+    }
+}
+
+impl std::ops::BitXor<Expression> for String {
+    type Output = Expression;
+    fn bitxor(self, other: Expression) -> Expression {
+        Variable::new(self) ^ other
+    }
+}
+
+impl std::ops::BitXor<Expression> for &str {
+    type Output = Expression;
+    fn bitxor(self, other: Expression) -> Expression {
+        Variable::new(String::from(self)) ^ other
+    }
+}
+
+impl std::ops::BitXor<isize> for &Expression {
+    type Output = Expression;
+    fn bitxor(self, other: isize) -> Expression {
+        self ^ Number::new(other as f64)
+    }
+}
+
+impl std::ops::BitXor<f64> for &Expression {
+    type Output = Expression;
+    fn bitxor(self, other: f64) -> Expression {
+        self ^ Number::new(other)
+    }
+}
+
+impl std::ops::BitXor<String> for &Expression {
+    type Output = Expression;
+    fn bitxor(self, other: String) -> Expression {
+        self ^ Variable::new(other)
+    }
+}
+
+impl std::ops::BitXor<&str> for &Expression {
+    type Output = Expression;
+    fn bitxor(self, other: &str) -> Expression {
+        self ^ Variable::new(String::from(other))
+    }
+}
+
+impl std::ops::BitXor<&Expression> for isize {
+    type Output = Expression;
+    fn bitxor(self, other: &Expression) -> Expression {
+        Number::new(self as f64) ^ other
+    }
+}
+
+impl std::ops::BitXor<&Expression> for f64 {
+    type Output = Expression;
+    fn bitxor(self, other: &Expression) -> Expression {
+        Number::new(self) ^ other
+    }
+}
+
+impl std::ops::BitXor<&Expression> for String {
+    type Output = Expression;
+    fn bitxor(self, other: &Expression) -> Expression {
+        Variable::new(self) ^ other
+    }
+}
+
+impl std::ops::BitXor<&Expression> for &str {
+    type Output = Expression;
+    fn bitxor(self, other: &Expression) -> Expression {
+        Variable::new(String::from(self)) ^ other
     }
 }

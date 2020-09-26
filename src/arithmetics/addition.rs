@@ -1,14 +1,16 @@
-use crate::base::expression::{CommutativeAssociation, Expression};
+use crate::base::{commutative_association::CommutativeAssociation, expression::Expression};
 use crate::manipulation::identifiable::{Identifiable, Identity};
+
+use std::collections::BinaryHeap;
 
 #[derive(std::fmt::Debug)]
 pub struct Addition {
-    items: Vec<Expression>,
+    items: BinaryHeap<Expression>,
 }
 
 impl Addition {
     pub fn new(addends: Vec<Expression>) -> Expression {
-        use crate::base::symbols::number::Number;
+        use crate::symbols::number::Number;
         if addends.len() == 0 {
             return Number::new(0.0);
         }
@@ -18,13 +20,15 @@ impl Addition {
             return single_addend;
         }
 
-        let mut items_vec: Vec<Expression> = Vec::new();
+        let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
 
         for addend in addends.iter() {
             match addend.id() {
                 Identity::Addition => {
                     if let Expression::CommutativeAssociation(addition) = addend {
-                        items_vec.append(&mut addition.items().iter().cloned().collect());
+                        items_vec.append(
+                            &mut addition.items().iter().map(|item| item.clone()).collect(),
+                        );
                     }
                 }
                 Identity::Number => {
@@ -45,8 +49,10 @@ impl Addition {
 }
 
 impl CommutativeAssociation for Addition {
-    fn items(&self) -> &Vec<Expression> {
-        &self.items
+    fn items(&self) -> Vec<Expression> {
+        let mut expressions = self.items.clone().into_sorted_vec();
+        expressions.reverse();
+        return expressions;
     }
     fn boxed_clone(&self) -> Box<dyn CommutativeAssociation> {
         Box::new(Self {
@@ -94,7 +100,8 @@ impl std::fmt::Display for Addition {
         if self.items().is_empty() {
             return write!(f, "");
         }
-        let mut iterator = self.items.iter();
+        let self_items = self.items();
+        let mut iterator = self_items.iter();
         if let Some(first_item) = iterator.next() {
             write!(f, "({}", first_item).expect("");
         }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod multiplication {
-    use crate::{base::symbols::variable::Variable, manipulation::expand::Expandable};
+    use crate::{manipulation::expand::Expandable, symbols::variable::Variable};
 
     #[test]
     fn sample_1() {

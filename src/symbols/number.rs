@@ -1,18 +1,18 @@
-use crate::base::expression::{Expression, Symbol, SymbolType};
+use crate::base::{expression::Expression, symbol::Symbol};
 
 /**
  * Symbol implementation
  */
 #[derive(std::clone::Clone, std::fmt::Debug)]
-pub struct Constant {
+pub struct Number {
     label: String,
     value: Option<f64>,
 }
 
-impl Constant {
-    pub fn new(label: String, value: f64) -> Expression {
+impl Number {
+    pub fn new(value: f64) -> Expression {
         Expression::Symbol(Box::new(Self {
-            label: label,
+            label: format!("{}", value),
             value: Some(value),
         }))
     }
@@ -21,10 +21,7 @@ impl Constant {
 /**
  * Symbol Implementation
  */
-impl Symbol for Constant {
-    fn symbol_type(&self) -> SymbolType {
-        SymbolType::Constant
-    }
+impl Symbol for Number {
     fn label(&self) -> String {
         self.label.clone()
     }
@@ -42,7 +39,7 @@ impl Symbol for Constant {
 /*
     Debug implementation
 */
-impl std::fmt::Display for Constant {
+impl std::fmt::Display for Number {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.label)
     }

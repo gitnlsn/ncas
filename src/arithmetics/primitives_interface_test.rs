@@ -2,7 +2,7 @@
 mod as_expression {
     use crate::{
         arithmetics::primitives_interface::AsExpression,
-        base::symbols::{number::Number, variable::Variable},
+        symbols::{number::Number, variable::Variable},
     };
 
     #[test]
@@ -22,8 +22,8 @@ mod as_expression {
 #[cfg(test)]
 mod negation {
     use crate::{
-        base::symbols::{constant::Constant, number::Number},
         manipulation::numeric_evaluation::NumericEvaluable,
+        symbols::{constant::Constant, number::Number},
     };
 
     #[test]
@@ -55,7 +55,7 @@ mod negation {
 
 #[cfg(test)]
 mod arithmetics {
-    use crate::base::symbols::{number::Number, variable::Variable};
+    use crate::symbols::{number::Number, variable::Variable};
 
     #[test]
     fn addition() {

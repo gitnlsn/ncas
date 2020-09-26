@@ -277,19 +277,23 @@ pub trait ExpressionMeasure {
 // =================================== //
 //      Recursion on Expression        //
 // =================================== //
-use crate::base::expression::{
-    Association, AssociativeOperation, CommutativeAssociation, Expression, SymbolType,
+use crate::base::{
+    association::Association, associative_operation::AssociativeOperation,
+    commutative_association::CommutativeAssociation, expression::Expression,
 };
+
+use crate::manipulation::identifiable::Identity;
 impl ExpressionMeasure for Expression {
     fn histogram(&self) -> Histogram {
         match self {
             Expression::CommutativeAssociation(a) => a.histogram(),
             Expression::AssociativeOperation(a) => a.histogram(),
             Expression::Association(a) => a.histogram(),
-            Expression::Symbol(s) => match s.symbol_type() {
-                SymbolType::Constant => Histogram::new(Symbols::constant()),
-                SymbolType::Variable => Histogram::new(Symbols::variable()),
-                SymbolType::Number => Histogram::new(Symbols::number()),
+            Expression::Symbol(s) => match s.id() {
+                Identity::Constant => Histogram::new(Symbols::constant()),
+                Identity::Variable => Histogram::new(Symbols::variable()),
+                Identity::Number => Histogram::new(Symbols::number()),
+                _ => panic!("Expected symbol indetity to be covered"),
             },
         }
     }

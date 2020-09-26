@@ -13,6 +13,12 @@ pub enum Identity {
     Power,
 }
 
+impl std::fmt::Display for Identity {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
 pub trait Identifiable {
     fn id(&self) -> Identity;
 }
@@ -32,7 +38,7 @@ impl Identifiable for Expression {
 // ======================= //
 //          Symbols        //
 // ======================= //
-use crate::base::symbols::{constant::Constant, number::Number, variable::Variable};
+use crate::symbols::{constant::Constant, number::Number, variable::Variable};
 
 impl Identifiable for Constant {
     fn id(&self) -> Identity {

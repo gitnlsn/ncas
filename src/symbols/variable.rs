@@ -1,4 +1,4 @@
-use crate::base::expression::{Expression, Symbol, SymbolType};
+use crate::base::{expression::Expression, symbol::Symbol};
 
 /**
  * Symbol implementation
@@ -7,7 +7,7 @@ use crate::base::expression::{Expression, Symbol, SymbolType};
 pub struct Variable {
     label: String,
     value: Option<f64>,
-    expression: Option<Expression>
+    expression: Option<Expression>,
 }
 
 impl Variable {
@@ -30,9 +30,6 @@ impl Variable {
  * Symbol Implementation
  */
 impl Symbol for Variable {
-    fn symbol_type(&self) -> SymbolType {
-        SymbolType::Variable
-    }
     fn label(&self) -> String {
         self.label.clone()
     }
@@ -49,7 +46,7 @@ impl Symbol for Variable {
         Box::new(Self {
             label: self.label.clone(),
             value: self.value.clone(),
-            expression: self.expression.clone()
+            expression: self.expression.clone(),
         })
     }
 }

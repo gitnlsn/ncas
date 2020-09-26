@@ -8,8 +8,9 @@ pub trait Expandable {
 // =================================== //
 //      Recursion on Expression        //
 // =================================== //
-use crate::base::expression::{
-    Association, AssociativeOperation, CommutativeAssociation, Expression,
+use crate::base::{
+    association::Association, associative_operation::AssociativeOperation,
+    commutative_association::CommutativeAssociation, expression::Expression,
 };
 use crate::manipulation::identifiable::{Identifiable, Identity};
 

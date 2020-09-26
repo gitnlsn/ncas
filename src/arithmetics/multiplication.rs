@@ -1,14 +1,17 @@
-use crate::base::expression::{CommutativeAssociation, Expression};
+use crate::base::{commutative_association::CommutativeAssociation, expression::Expression};
 use crate::manipulation::identifiable::{Identifiable, Identity};
+
+use std::collections::BinaryHeap;
 
 #[derive(std::fmt::Debug)]
 pub struct Multiplication {
-    items: Vec<Expression>,
+    items: BinaryHeap<Expression>,
 }
 
 impl Multiplication {
     pub fn new(factors: Vec<Expression>) -> Expression {
-        use crate::base::symbols::number::Number;
+        use crate::symbols::number::Number;
+
         if factors.len() == 0 {
             return Number::new(1.0);
         }
@@ -18,13 +21,19 @@ impl Multiplication {
             return single_addend;
         }
 
-        let mut items_vec: Vec<Expression> = Vec::new();
+        let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
 
         for addend in factors.iter() {
             match addend.id() {
                 Identity::Multiplication => {
                     if let Expression::CommutativeAssociation(multiplication) = addend {
-                        items_vec.append(&mut multiplication.items().iter().cloned().collect());
+                        items_vec.append(
+                            &mut multiplication
+                                .items()
+                                .iter()
+                                .map(|item| item.clone())
+                                .collect(),
+                        );
                     }
                 }
                 Identity::Number => {
@@ -45,8 +54,10 @@ impl Multiplication {
 }
 
 impl CommutativeAssociation for Multiplication {
-    fn items(&self) -> &Vec<Expression> {
-        &self.items
+    fn items(&self) -> Vec<Expression> {
+        let mut expressions = self.items.clone().into_sorted_vec();
+        expressions.reverse();
+        return expressions;
     }
     fn boxed_clone(&self) -> Box<dyn CommutativeAssociation> {
         Box::new(Self {
@@ -94,7 +105,8 @@ impl std::fmt::Display for Multiplication {
         if self.items().is_empty() {
             return write!(f, "");
         }
-        let mut iterator = self.items.iter();
+        let self_items = self.items();
+        let mut iterator = self_items.iter();
         if let Some(first_item) = iterator.next() {
             write!(f, "({}", first_item).expect("");
         }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod base {
-    use crate::base::{expression::Expression, symbols::constant::Constant};
+    use crate::{base::expression::Expression, symbols::constant::Constant};
 
     #[test]
     fn displays_label() {
@@ -12,8 +12,8 @@ mod base {
 #[cfg(test)]
 mod evaluable {
     use crate::{
-        base::{expression::Expression, symbols::constant::Constant},
-        manipulation::numeric_evaluation::NumericEvaluable,
+        base::expression::Expression, manipulation::numeric_evaluation::NumericEvaluable,
+        symbols::constant::Constant,
     };
 
     #[test]

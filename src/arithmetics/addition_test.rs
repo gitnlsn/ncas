@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod evaluable {
     use crate::{
-        base::symbols::{constant::Constant, number::Number, variable::Variable},
         manipulation::numeric_evaluation::NumericEvaluable,
+        symbols::{constant::Constant, number::Number, variable::Variable},
     };
 
     #[test]
@@ -10,8 +10,6 @@ mod evaluable {
         let one = Number::new(1.0);
         let two = Number::new(2.0);
         let sum = one + two;
-
-        println!("{}", sum);
 
         assert!(sum.into_num().is_ok());
         assert_eq!(sum.into_num().unwrap(), 3.0);

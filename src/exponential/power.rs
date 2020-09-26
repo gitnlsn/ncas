@@ -1,4 +1,4 @@
-use crate::base::expression::{AssociativeOperation, Expression};
+use crate::base::{associative_operation::AssociativeOperation, expression::Expression};
 
 #[derive(std::fmt::Debug)]
 pub struct Power {
@@ -63,11 +63,21 @@ impl std::ops::BitXor<&Expression> for &Expression {
     }
 }
 
+impl std::ops::BitXor<Expression> for &Expression {
+    type Output = Expression;
+    fn bitxor(self, other: Expression) -> Expression {
+        Expression::AssociativeOperation(Box::new(Power {
+            base: Box::new(self.clone()),
+            exp: Box::new(other),
+        }))
+    }
+}
+
 /*
     Debug implementation
 */
 impl std::fmt::Display for Power {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}^{}", self.base, self.exp)
+        write!(f, "({} ^ {})", self.base, self.exp)
     }
 }

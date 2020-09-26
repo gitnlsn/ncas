@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod all {
     use crate::{
-        base::symbols::{constant::Constant, number::Number, variable::Variable},
         manipulation::expression_measure::{ExpressionMeasure, Histogram},
+        symbols::{constant::Constant, number::Number, variable::Variable},
     };
 
     #[test]

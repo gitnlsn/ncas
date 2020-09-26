@@ -1,4 +1,4 @@
-use crate::base::expression::{Association, Expression};
+use crate::base::{association::Association, expression::Expression};
 
 #[derive(std::fmt::Debug)]
 pub struct Division {

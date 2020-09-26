@@ -1,8 +1,6 @@
 #[cfg(test)]
 mod evaluable {
-    use crate::{
-        base::symbols::number::Number, manipulation::numeric_evaluation::NumericEvaluable,
-    };
+    use crate::{manipulation::numeric_evaluation::NumericEvaluable, symbols::number::Number};
 
     #[test]
     fn multiplication_precedes_addition() {

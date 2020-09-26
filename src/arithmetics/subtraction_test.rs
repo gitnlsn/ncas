@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod evaluable {
     use crate::{
-        base::symbols::{constant::Constant, number::Number, variable::Variable},
         manipulation::numeric_evaluation::NumericEvaluable,
+        symbols::{constant::Constant, number::Number, variable::Variable},
     };
 
     #[test]
