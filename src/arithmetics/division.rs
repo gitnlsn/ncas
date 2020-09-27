@@ -1,32 +1,17 @@
-use crate::base::{association::Association, expression::Expression};
+use crate::{
+    arithmetics::multiplication::Multiplication, base::expression::Expression,
+    exponential::power::Power, symbols::number::Number,
+};
 
 #[derive(std::fmt::Debug)]
-pub struct Division {
-    right_hand_side: Box<Expression>,
-    left_hand_side: Box<Expression>,
-}
+pub struct Division {}
 
 impl Division {
     pub fn new(left_hand_side: Expression, right_hand_side: Expression) -> Expression {
-        Expression::Association(Box::new(Self {
-            left_hand_side: Box::new(left_hand_side),
-            right_hand_side: Box::new(right_hand_side),
-        }))
-    }
-}
-
-impl Association for Division {
-    fn right_hand_side(&self) -> &Box<Expression> {
-        &self.right_hand_side
-    }
-    fn left_hand_side(&self) -> &Box<Expression> {
-        &self.left_hand_side
-    }
-    fn boxed_clone(&self) -> Box<dyn Association> {
-        Box::new(Self {
-            left_hand_side: self.left_hand_side.clone(),
-            right_hand_side: self.right_hand_side.clone(),
-        })
+        Multiplication::new(vec![
+            left_hand_side,
+            Power::new(right_hand_side, Number::new(-1.0)),
+        ])
     }
 }
 
@@ -36,48 +21,27 @@ impl Association for Division {
 impl std::ops::Div for Expression {
     type Output = Expression;
     fn div(self, other: Expression) -> Expression {
-        Expression::Association(Box::new(Division {
-            left_hand_side: Box::new(self),
-            right_hand_side: Box::new(other),
-        }))
+        Division::new(self, other)
     }
 }
 
 impl std::ops::Div<&Expression> for Expression {
     type Output = Expression;
     fn div(self, other: &Expression) -> Expression {
-        Expression::Association(Box::new(Division {
-            left_hand_side: Box::new(self),
-            right_hand_side: Box::new(other.clone()),
-        }))
+        Division::new(self, other.clone())
     }
 }
 
 impl std::ops::Div<&Expression> for &Expression {
     type Output = Expression;
     fn div(self, other: &Expression) -> Expression {
-        Expression::Association(Box::new(Division {
-            left_hand_side: Box::new(self.clone()),
-            right_hand_side: Box::new(other.clone()),
-        }))
+        Division::new(self.clone(), other.clone())
     }
 }
 
 impl std::ops::Div<Expression> for &Expression {
     type Output = Expression;
     fn div(self, other: Expression) -> Expression {
-        Expression::Association(Box::new(Division {
-            left_hand_side: Box::new(self.clone()),
-            right_hand_side: Box::new(other),
-        }))
-    }
-}
-
-/*
-    Debug implementation
-*/
-impl std::fmt::Display for Division {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} / {}", self.left_hand_side, self.right_hand_side)
+        Division::new(self.clone(), other)
     }
 }

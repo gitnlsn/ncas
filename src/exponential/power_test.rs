@@ -58,8 +58,7 @@ mod evaluable_against_other_operations {
     use crate::{manipulation::numeric_evaluation::NumericEvaluable, symbols::number::Number};
 
     #[test]
-    fn sample_1() {
-        /* Chains agains addition commutation */
+    fn addition() {
         let three = &Number::new(3.0);
 
         assert_eq!(
@@ -74,7 +73,7 @@ mod evaluable_against_other_operations {
     }
 
     #[test]
-    fn sample_2() {
+    fn multiplication() {
         /* Chains agains multiplication commutation */
         let three = &Number::new(3.0);
 
@@ -90,7 +89,7 @@ mod evaluable_against_other_operations {
     }
 
     #[test]
-    fn sample_3() {
+    fn subtraction() {
         /* Chains agains subtraction commutation */
         let three = &Number::new(3.0);
         let one = &Number::new(1.0);
@@ -107,7 +106,7 @@ mod evaluable_against_other_operations {
     }
 
     #[test]
-    fn sample_4() {
+    fn division() {
         /* Chains agains subtraction commutation */
         let three = &Number::new(3.0);
 

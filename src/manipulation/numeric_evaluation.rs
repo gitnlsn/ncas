@@ -82,23 +82,6 @@ impl NumericEvaluable for Addition {
     }
 }
 
-impl NumericEvaluable for Subtraction {
-    fn into_num(&self) -> Result<f64, Expression> {
-        let possible_lhs_value = self.left_hand_side().into_num();
-        let possible_rhs_value = self.right_hand_side().into_num();
-
-        if possible_lhs_value.is_ok() && possible_rhs_value.is_ok() {
-            return Ok(possible_lhs_value.unwrap() - possible_rhs_value.unwrap());
-        }
-
-        if possible_lhs_value.is_err() {
-            return possible_lhs_value;
-        } else {
-            return possible_rhs_value;
-        }
-    }
-}
-
 impl NumericEvaluable for Multiplication {
     fn into_num(&self) -> Result<f64, Expression> {
         let results: Vec<Result<f64, Expression>> = self
@@ -118,23 +101,6 @@ impl NumericEvaluable for Multiplication {
             .cloned()
             .map(|res| res.unwrap())
             .fold(1.0, |acc, new| acc * new));
-    }
-}
-
-impl NumericEvaluable for Division {
-    fn into_num(&self) -> Result<f64, Expression> {
-        let possible_lhs_value = self.left_hand_side().into_num();
-        let possible_rhs_value = self.right_hand_side().into_num();
-
-        if possible_lhs_value.is_ok() && possible_rhs_value.is_ok() {
-            return Ok(possible_lhs_value.unwrap() / possible_rhs_value.unwrap());
-        }
-
-        if possible_lhs_value.is_err() {
-            return possible_lhs_value;
-        } else {
-            return possible_rhs_value;
-        }
     }
 }
 

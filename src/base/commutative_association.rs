@@ -1,6 +1,6 @@
 use crate::base::expression::Expression;
 use crate::manipulation::{
-    differentiate::Differentiable, expand::Expandable, expression_measure::ExpressionMeasure,
+    differentiate::Differentiable, expand::Expandable,
     identifiable::Identifiable, numeric_evaluation::NumericEvaluable,
 };
 
@@ -13,7 +13,7 @@ use std::fmt::{Debug, Display};
  *      - commuativity
  */
 pub trait CommutativeAssociation:
-    Debug + Display + NumericEvaluable + Expandable + ExpressionMeasure + Identifiable
+    Debug + Display + NumericEvaluable + Expandable + Identifiable
 /* + Simplifiable + Sortable */
 {
     fn items(&self) -> Vec<Expression>;

@@ -25,7 +25,7 @@ impl AssociativeOperation for Power {
     fn boxed_clone(&self) -> Box<dyn AssociativeOperation> {
         Box::new(Self {
             base: self.base.clone(),
-            exp: self.base.clone(),
+            exp: self.exp.clone(),
         })
     }
 }
@@ -36,40 +36,28 @@ impl AssociativeOperation for Power {
 impl std::ops::BitXor for Expression {
     type Output = Expression;
     fn bitxor(self, other: Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Power {
-            base: Box::new(self),
-            exp: Box::new(other),
-        }))
+        Power::new(self, other)
     }
 }
 
 impl std::ops::BitXor<&Expression> for Expression {
     type Output = Expression;
     fn bitxor(self, other: &Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Power {
-            base: Box::new(self),
-            exp: Box::new(other.clone()),
-        }))
+        Power::new(self, other.clone())
     }
 }
 
 impl std::ops::BitXor<&Expression> for &Expression {
     type Output = Expression;
     fn bitxor(self, other: &Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Power {
-            base: Box::new(self.clone()),
-            exp: Box::new(other.clone()),
-        }))
+        Power::new(self.clone(), other.clone())
     }
 }
 
 impl std::ops::BitXor<Expression> for &Expression {
     type Output = Expression;
     fn bitxor(self, other: Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Power {
-            base: Box::new(self.clone()),
-            exp: Box::new(other),
-        }))
+        Power::new(self.clone(), other.clone())
     }
 }
 

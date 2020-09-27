@@ -55,9 +55,7 @@ impl Multiplication {
 
 impl CommutativeAssociation for Multiplication {
     fn items(&self) -> Vec<Expression> {
-        let mut expressions = self.items.clone().into_sorted_vec();
-        expressions.reverse();
-        return expressions;
+        self.items.clone().into_sorted_vec()
     }
     fn boxed_clone(&self) -> Box<dyn CommutativeAssociation> {
         Box::new(Self {

@@ -1,7 +1,7 @@
 use crate::base::expression::Expression;
 use crate::manipulation::{
-    differentiate::Differentiable, expand::Expandable, expression_measure::ExpressionMeasure,
-    identifiable::Identifiable, numeric_evaluation::NumericEvaluable,
+    differentiate::Differentiable, expand::Expandable, identifiable::Identifiable,
+    numeric_evaluation::NumericEvaluable,
 };
 
 use std::fmt::{Debug, Display};
@@ -10,8 +10,7 @@ use std::fmt::{Debug, Display};
  * Operations applied on an Expression, given an Expresssion as parameter
  */
 pub trait AssociativeOperation:
-    Debug + Display + NumericEvaluable + Expandable + ExpressionMeasure + Identifiable
-/* + Simplifiable + Sortable */
+    Debug + Display + NumericEvaluable + Expandable + Identifiable /* + Simplifiable + Sortable */
 {
     fn argument(&self) -> &Box<Expression>;
     fn modifier(&self) -> &Box<Expression>;

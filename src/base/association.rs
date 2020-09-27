@@ -1,6 +1,6 @@
 use crate::manipulation::{
-    differentiate::Differentiable, expand::Expandable, expression_measure::ExpressionMeasure,
-    identifiable::Identifiable, numeric_evaluation::NumericEvaluable,
+    differentiate::Differentiable, expand::Expandable, identifiable::Identifiable,
+    numeric_evaluation::NumericEvaluable,
 };
 
 use crate::base::expression::Expression;
@@ -12,7 +12,7 @@ use std::fmt::{Debug, Display};
  *      - no commuativity: left and right order matters
  */
 pub trait Association:
-    Debug + Display + NumericEvaluable + Expandable + ExpressionMeasure + Identifiable
+    Debug + Display + NumericEvaluable + Expandable + Identifiable
 /* + Simplifiable + Sortable */
 {
     fn right_hand_side(&self) -> &Box<Expression>;

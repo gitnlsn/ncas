@@ -28,10 +28,7 @@ impl Expandable for Expression {
 // =================================== //
 //              Arithmetics            //
 // =================================== //
-use crate::arithmetics::{
-    addition::Addition, division::Division, multiplication::Multiplication,
-    subtraction::Subtraction,
-};
+use crate::arithmetics::{addition::Addition, division::Division, multiplication::Multiplication};
 impl Expandable for Addition {
     fn expand(&self) -> Expression {
         Addition::new(
@@ -40,15 +37,6 @@ impl Expandable for Addition {
                 .map(|item| item.expand() /* Recursion: expands addends */)
                 .collect(),
         )
-    }
-}
-
-impl Expandable for Subtraction {
-    /* Subtractions are converted into additions */
-    fn expand(&self) -> Expression {
-        let lhs = self.left_hand_side().expand();
-        let rhs = self.right_hand_side().expand();
-        return lhs + (-1 * rhs);
     }
 }
 
@@ -139,43 +127,6 @@ impl Expandable for Multiplication {
             });
     } /* end - expand method */
 } /* end - Expandable Multiplication */
-
-impl Expandable for Division {
-    fn expand(&self) -> Expression {
-        let lhs = self.left_hand_side();
-        let rhs = self.right_hand_side();
-        match (lhs.id(), rhs.id()) {
-            (Identity::Addition, _) => {
-                /* (a+b)/d = a/d + b/d */
-                if let (Expression::Association(nominator), Expression::Association(demoninator)) =
-                    (lhs.as_ref(), rhs.as_ref())
-                {
-                    let t1 = nominator.left_hand_side().as_ref();
-                    let t2 = nominator.right_hand_side().as_ref();
-
-                    let expanded_t1 = t1.expand();
-                    let expanded_t2 = t2.expand();
-                    let denominator = demoninator.expand();
-
-                    return (expanded_t1 / denominator.clone())
-                        + (expanded_t2 / denominator.clone());
-                } else {
-                    panic!("Expected multiplicative and additive terms to hold on association expressions");
-                }
-            }
-
-            _ => {
-                /*
-                    Default matcher holds among {
-                        symbols,
-                        multiplicative expressions
-                    }
-                */
-                return Division::new(lhs.expand(), rhs.expand());
-            }
-        } /* match expandability */
-    }
-} /* end - Expandable Division */
 
 // =================================== //
 //              Exponential            //
