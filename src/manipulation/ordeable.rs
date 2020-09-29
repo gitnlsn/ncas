@@ -38,7 +38,7 @@ impl Identity {
 
             /* AssociativeOperations */
             Identity::Power => 310,
-            /* log */
+            Identity::Logarithm => 320,
             /* derivative */
             /* integral */
 

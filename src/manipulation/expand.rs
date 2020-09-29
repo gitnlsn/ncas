@@ -9,7 +9,7 @@ pub trait Expandable {
 //      Recursion on Expression        //
 // =================================== //
 use crate::base::{
-    association::Association, associative_operation::AssociativeOperation,
+    associative_operation::AssociativeOperation,
     commutative_association::CommutativeAssociation, expression::Expression,
 };
 use crate::manipulation::identifiable::{Identifiable, Identity};
@@ -28,7 +28,7 @@ impl Expandable for Expression {
 // =================================== //
 //              Arithmetics            //
 // =================================== //
-use crate::arithmetics::{addition::Addition, division::Division, multiplication::Multiplication};
+use crate::arithmetics::{addition::Addition, multiplication::Multiplication};
 impl Expandable for Addition {
     fn expand(&self) -> Expression {
         Addition::new(
@@ -133,6 +133,13 @@ impl Expandable for Multiplication {
 // =================================== //
 use crate::exponential::power::Power;
 impl Expandable for Power {
+    fn expand(&self) -> Expression {
+        return self.argument().expand() ^ self.modifier().expand();
+    }
+}
+
+use crate::exponential::logarithm::Log;
+impl Expandable for Log {
     fn expand(&self) -> Expression {
         return self.argument().expand() ^ self.modifier().expand();
     }

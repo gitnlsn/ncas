@@ -1,7 +1,7 @@
 /**
  * Identity for Expression Nodes
  */
-#[derive(Debug, Eq, PartialEq)]
+ #[derive(Debug, Eq, PartialEq, Hash)]
 pub enum Identity {
     Number,
     Variable,
@@ -11,6 +11,7 @@ pub enum Identity {
     Multiplication,
     Division,
     Power,
+    Logarithm,
 }
 
 impl std::fmt::Display for Identity {
@@ -89,9 +90,15 @@ impl Identifiable for Division {
 //          Exponential        //
 // =========================== //
 use crate::exponential::power::Power;
-
 impl Identifiable for Power {
     fn id(&self) -> Identity {
         Identity::Power
+    }
+}
+
+use crate::exponential::logarithm::Log;
+impl Identifiable for Log {
+    fn id(&self) -> Identity {
+        Identity::Logarithm
     }
 }

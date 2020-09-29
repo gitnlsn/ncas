@@ -1,4 +1,5 @@
 use std::fmt::{Debug, Display};
+use std::hash::Hash;
 
 use crate::base::{
     association::Association, associative_operation::AssociativeOperation,
@@ -8,7 +9,7 @@ use crate::base::{
 /**
  * Symbols related through composition of Associations, Operations and AssociativeOperations
  */
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash)]
 pub enum Expression {
     // Operation(Box<dyn Operation>),
     CommutativeAssociation(Box<dyn CommutativeAssociation>),

@@ -9,8 +9,8 @@ pub trait NumericEvaluable {
 //      Recursion on Expression        //
 // =================================== //
 use crate::base::{
-    association::Association, associative_operation::AssociativeOperation,
-    commutative_association::CommutativeAssociation, expression::Expression, symbol::Symbol,
+    associative_operation::AssociativeOperation, commutative_association::CommutativeAssociation,
+    expression::Expression, symbol::Symbol,
 };
 impl NumericEvaluable for Expression {
     fn into_num(&self) -> Result<f64, Expression> {
@@ -55,10 +55,7 @@ impl NumericEvaluable for Variable {
 // =================================== //
 //              Arithmetics            //
 // =================================== //
-use crate::arithmetics::{
-    addition::Addition, division::Division, multiplication::Multiplication,
-    subtraction::Subtraction,
-};
+use crate::arithmetics::{addition::Addition, multiplication::Multiplication};
 
 impl NumericEvaluable for Addition {
     fn into_num(&self) -> Result<f64, Expression> {
@@ -121,6 +118,24 @@ impl NumericEvaluable for Power {
             return base;
         } else {
             return exp;
+        }
+    }
+}
+
+use crate::exponential::logarithm::Log;
+impl NumericEvaluable for Log {
+    fn into_num(&self) -> Result<f64, Expression> {
+        let argument = self.argument().into_num();
+        let base = self.modifier().into_num();
+
+        if argument.is_ok() && base.is_ok() {
+            return Ok(argument.unwrap().log(base.unwrap()));
+        }
+
+        if argument.is_err() {
+            return argument;
+        } else {
+            return base;
         }
     }
 }

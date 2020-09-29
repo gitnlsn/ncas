@@ -16,3 +16,17 @@ impl Clone for Box<dyn Symbol> {
         self.as_ref().boxed_clone()
     }
 }
+
+use std::hash::{Hash, Hasher};
+impl Hash for dyn Symbol {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id().hash(state);
+        self.label().hash(state);
+        if let Some(value) = self.value() {
+            let (m, e, s) = num::Float::integer_decode(value);
+            m.hash(state);
+            e.hash(state);
+            s.hash(state);
+        }
+    }
+}

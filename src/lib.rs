@@ -37,6 +37,8 @@ pub mod manipulation {
     pub mod numeric_evaluation;
     pub mod ordeable;
     mod ordeable_test;
+    pub mod simplifiable;
+    pub mod simplifiable_test;
     // pub mod replaceable;
     // pub mod simplifiable;
     // pub mod sortable;
@@ -59,4 +61,6 @@ pub mod arithmetics {
 pub mod exponential {
     pub mod power;
     pub mod power_test;
+    pub mod logarithm;
+    pub mod logarithm_test;
 }
