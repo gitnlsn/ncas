@@ -23,10 +23,10 @@ impl Multiplication {
 
         let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
 
-        for addend in factors.iter() {
-            match addend.id() {
+        for factor in factors.iter() {
+            match factor.id() {
                 Identity::Multiplication => {
-                    if let Expression::CommutativeAssociation(multiplication) = addend {
+                    if let Expression::CommutativeAssociation(multiplication) = factor {
                         items_vec.append(
                             &mut multiplication
                                 .items()
@@ -37,18 +37,27 @@ impl Multiplication {
                     }
                 }
                 Identity::Number => {
-                    if let Expression::Symbol(number) = addend {
+                    if let Expression::Symbol(number) = factor {
                         if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
                             continue;
                         }
                     }
-                    items_vec.push(addend.clone());
+                    items_vec.push(factor.clone());
                 }
                 _ => {
-                    items_vec.push(addend.clone());
+                    items_vec.push(factor.clone());
                 }
             }
         }
+
+        if items_vec.len() == 0 {
+            return Number::new(0.0);
+        }
+
+        if items_vec.len() == 1 {
+            return items_vec.pop().unwrap();
+        }
+
         return Expression::CommutativeAssociation(Box::new(Self { items: items_vec }));
     }
 }

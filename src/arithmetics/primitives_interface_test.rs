@@ -21,9 +21,10 @@ mod as_expression {
 
 #[cfg(test)]
 mod negation {
+    use crate::arithmetics::{addition::Addition, multiplication::Multiplication};
     use crate::{
         manipulation::numeric_evaluation::NumericEvaluable,
-        symbols::{constant::Constant, number::Number},
+        symbols::{constant::Constant, number::Number, variable::Variable},
     };
 
     #[test]
@@ -34,6 +35,14 @@ mod negation {
     #[test]
     fn negate_number_sign_numerical_evaluation() {
         assert_eq!((-Number::new(1.0)).into_num(), Ok(-1.0));
+    }
+
+    #[test]
+    fn negate_variable() {
+        assert_eq!(
+            -Variable::new(String::from("a")),
+            Multiplication::new(vec![Number::new(-1.0), Variable::new(String::from("a"))])
+        );
     }
 
     #[test]
@@ -55,6 +64,8 @@ mod negation {
 
 #[cfg(test)]
 mod arithmetics {
+    use crate::arithmetics::{addition::Addition, multiplication::Multiplication};
+    use crate::manipulation::simplifiable::Simplifiable;
     use crate::symbols::{number::Number, variable::Variable};
 
     #[test]
@@ -67,8 +78,16 @@ mod arithmetics {
 
         /* algebraic */
         assert_eq!(
-            "a" + Number::new(1.0),
-            Variable::new(String::from("a")) + Number::new(1.0)
+            "a" - Number::new(1.0),
+            Addition::new(vec![Variable::new(String::from("a")), Number::new(-1.0)])
+        );
+        assert_eq!(
+            (Variable::new(String::from("a")) - Variable::new(String::from("a"))).simplify(),
+            Addition::new(vec![
+                Variable::new(String::from("a")),
+                Multiplication::new(vec![Number::new(-1.0), Variable::new(String::from("a")),])
+            ])
+            .simplify()
         );
         assert_eq!(
             Number::new(1.0) + "a",
