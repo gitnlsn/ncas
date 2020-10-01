@@ -44,6 +44,7 @@ pub mod manipulation {
         pub mod rule;
         pub mod identities {
             pub mod additive_common_factor;
+            pub mod inverse_power_log;
             pub mod multiplicative_common_factor;
         }
     }

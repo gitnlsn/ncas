@@ -1,13 +1,12 @@
-pub struct AdditiveCommonFactor {}
-
 use crate::arithmetics::addition::Addition;
 use crate::base::expression::Expression;
 use crate::manipulation::{identifiable::Identity, simplification_rules::rule::Rule};
 
 use std::collections::HashMap;
 
+pub struct AdditiveCommonFactor {}
 impl Rule for AdditiveCommonFactor {
-    fn apply(expression: Expression) -> Vec<Expression> {
+    fn apply(expression: &Expression) -> Vec<Expression> {
         let mut alternatives = Vec::new();
         match expression {
             Expression::CommutativeAssociation(a) => {
@@ -60,7 +59,7 @@ mod test {
             Variable::new(String::from("b")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(expression).pop().unwrap();
+        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -83,7 +82,7 @@ mod test {
             Variable::new(String::from("a")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(expression).pop().unwrap();
+        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -103,7 +102,7 @@ mod test {
             2 * Variable::new(String::from("a")) * Variable::new(String::from("b")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(expression).pop().unwrap();
+        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
 
         assert_eq!(factored, expected);
     }

@@ -1,5 +1,3 @@
-pub struct MultiplicativeCommonFactor {}
-
 use crate::arithmetics::multiplication::Multiplication;
 use crate::base::expression::Expression;
 use crate::exponential::power::Power;
@@ -11,8 +9,9 @@ use crate::symbols::number::Number;
 
 use std::collections::HashMap;
 
+pub struct MultiplicativeCommonFactor {}
 impl Rule for MultiplicativeCommonFactor {
-    fn apply(expression: Expression) -> Vec<Expression> {
+    fn apply(expression: &Expression) -> Vec<Expression> {
         let mut alternatives = Vec::new();
         match expression {
             Expression::CommutativeAssociation(association) => {
@@ -97,7 +96,9 @@ mod test {
             Variable::new(String::from("b")),
         ]);
 
-        let factored = MultiplicativeCommonFactor::apply(expression).pop().unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression)
+            .pop()
+            .unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -113,7 +114,9 @@ mod test {
 
         let expected = Multiplication::new(vec![a ^ (n1 + n1 + n1 + n1), b ^ (n1 + n1 + n1 + n1)]);
 
-        let factored = MultiplicativeCommonFactor::apply(expression).pop().unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression)
+            .pop()
+            .unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -130,7 +133,28 @@ mod test {
 
         let expected = Multiplication::new(vec![a ^ (n1 + n1 + n1), b ^ (-n1 - n1 - n1)]);
 
-        let factored = MultiplicativeCommonFactor::apply(expression).pop().unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression)
+            .pop()
+            .unwrap();
+
+        assert_eq!(factored, expected);
+    }
+
+    #[test]
+    fn zero_power_wont_go_to_one() {
+        use crate::symbols::variable::Variable;
+
+        let n1 = &Number::new(1.0);
+        let a = &Variable::new(String::from("a"));
+        let b = &Variable::new(String::from("b"));
+
+        let expression = Multiplication::new(vec![a / b, b / a]);
+
+        let expected = Multiplication::new(vec![a ^ (n1 - n1), b ^ (n1 - n1)]);
+
+        let factored = MultiplicativeCommonFactor::apply(&expression)
+            .pop()
+            .unwrap();
 
         assert_eq!(factored, expected);
     }
