@@ -1,4 +1,6 @@
 use crate::base::{associative_operation::AssociativeOperation, expression::Expression};
+use crate::manipulation::identifiable::{Identifiable, Identity};
+use crate::symbols::number::Number;
 
 #[derive(std::fmt::Debug)]
 pub struct Power {
@@ -7,11 +9,28 @@ pub struct Power {
 }
 
 impl Power {
+    /**
+     *  Builds power associative operation
+     *      - ignores neutral exponent
+     */
     pub fn new(base: Expression, exp: Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Self {
+        match &exp {
+            Expression::Symbol(s) => {
+                if (&exp).id() == Identity::Number {
+                    if s.value() == Some(1.0) || s.label().eq(&String::from("1")) {
+                        return base.clone();
+                    }
+                    if s.value() == Some(0.0) || s.label().eq(&String::from("0")) {
+                        return Number::new(1.0);
+                    }
+                }
+            }
+            _ => {}
+        }
+        return Expression::AssociativeOperation(Box::new(Self {
             base: Box::new(base),
             exp: Box::new(exp),
-        }))
+        }));
     }
 }
 

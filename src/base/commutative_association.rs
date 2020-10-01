@@ -1,7 +1,8 @@
 use crate::base::expression::Expression;
 use crate::manipulation::{
     differentiate::Differentiable, expand::Expandable, identifiable::Identifiable,
-    numeric_evaluation::NumericEvaluable, simplifiable::Simplifiable,
+    numeric_evaluation::NumericEvaluable, pattern_matchable::PatternMatchable,
+    simplifiable::Simplifiable,
 };
 
 use std::fmt::{Debug, Display};
@@ -13,7 +14,7 @@ use std::fmt::{Debug, Display};
  *      - commuativity
  */
 pub trait CommutativeAssociation:
-    Debug + Display + NumericEvaluable + Expandable + Identifiable + Simplifiable
+    Debug + Display + NumericEvaluable + Expandable + Identifiable + Simplifiable + PatternMatchable
 {
     fn items(&self) -> Vec<Expression>;
     fn boxed_clone(&self) -> Box<dyn CommutativeAssociation>;

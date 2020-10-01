@@ -9,6 +9,11 @@ pub struct Multiplication {
 }
 
 impl Multiplication {
+    /**
+     * Builds a multiplicative expression
+     *  - ignores neutral element
+     *  - separates sign with single -1.0 Number
+     */
     pub fn new(factors: Vec<Expression>) -> Expression {
         use crate::symbols::number::Number;
 
@@ -21,13 +26,16 @@ impl Multiplication {
             return single_addend;
         }
 
+        let mut pending_factors: Vec<Expression> = factors.iter().cloned().collect();
         let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
+        let mut is_negative: bool = false;
 
-        for factor in factors.iter() {
+        while !pending_factors.is_empty() {
+            let factor = &pending_factors.pop().unwrap();
             match factor.id() {
                 Identity::Multiplication => {
                     if let Expression::CommutativeAssociation(multiplication) = factor {
-                        items_vec.append(
+                        pending_factors.append(
                             &mut multiplication
                                 .items()
                                 .iter()
@@ -40,9 +48,20 @@ impl Multiplication {
                     if let Expression::Symbol(number) = factor {
                         if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
                             continue;
+                        } else if number.value() == Some(-1.0)
+                            || String::from("-1").eq(&number.label())
+                        {
+                            is_negative = !is_negative;
+                            continue;
+                        } else if number.value().unwrap() < 0.0 {
+                            is_negative = !is_negative;
+                            items_vec.push(Number::new(number.value().unwrap() * -1.0));
+                            continue;
+                        } else {
+                            items_vec.push(factor.clone());
+                            continue;
                         }
                     }
-                    items_vec.push(factor.clone());
                 }
                 _ => {
                     items_vec.push(factor.clone());
@@ -50,8 +69,12 @@ impl Multiplication {
             }
         }
 
+        if is_negative {
+            items_vec.push(Number::new(-1.0));
+        }
+
         if items_vec.len() == 0 {
-            return Number::new(0.0);
+            return Number::new(1.0);
         }
 
         if items_vec.len() == 1 {

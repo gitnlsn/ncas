@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod evaluable {
     use crate::{
+        arithmetics::multiplication::Multiplication,
         manipulation::numeric_evaluation::NumericEvaluable,
         symbols::{constant::Constant, number::Number, variable::Variable},
     };
@@ -43,5 +44,30 @@ mod evaluable {
         let sum = var_x * two;
 
         assert!(sum.into_num().is_err());
+    }
+
+    #[test]
+    fn opposed_of_opposed() {
+        assert_eq!(
+            Multiplication::new(vec![
+                Number::new(-1.0),
+                Number::new(-1.0),
+                Variable::new(String::from("x")),
+            ]),
+            Variable::new(String::from("x"))
+        );
+
+        assert_eq!(
+            Number::new(-1.0) * Number::new(-1.0) * Variable::new(String::from("x")),
+            Variable::new(String::from("x"))
+        );
+
+        assert_eq!(
+            Number::new(-1.0)
+                * Number::new(-1.0)
+                * Number::new(-1.0)
+                * Variable::new(String::from("x")),
+            Number::new(-1.0) * Variable::new(String::from("x"))
+        );
     }
 }

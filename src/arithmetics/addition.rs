@@ -42,7 +42,7 @@ impl Addition {
                 _ => {
                     items_vec.push(addend.clone());
                 }
-            } /* match  */
+            }
         }
         return Expression::CommutativeAssociation(Box::new(Self { items: items_vec }));
     }
