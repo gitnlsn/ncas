@@ -19,15 +19,17 @@ impl Addition {
             let single_addend = addends.iter().cloned().next().unwrap();
             return single_addend;
         }
-
+        
+        let mut pending_addends: Vec<Expression> = addends.iter().cloned().collect();
         let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
 
-        for addend in addends.iter() {
+        while !pending_addends.is_empty() {
+            let addend = &pending_addends.pop().unwrap();
             match addend.id() {
                 Identity::Addition => {
                     if let Expression::CommutativeAssociation(addition) = addend {
-                        items_vec.append(
-                            &mut addition.items().iter().map(|item| item.clone()).collect(),
+                        pending_addends.append(
+                            &mut addition.items().iter().cloned().collect(),
                         );
                     }
                 }

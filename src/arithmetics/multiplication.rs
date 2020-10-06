@@ -35,18 +35,15 @@ impl Multiplication {
             match factor.id() {
                 Identity::Multiplication => {
                     if let Expression::CommutativeAssociation(multiplication) = factor {
-                        pending_factors.append(
-                            &mut multiplication
-                                .items()
-                                .iter()
-                                .map(|item| item.clone())
-                                .collect(),
-                        );
+                        pending_factors
+                            .append(&mut multiplication.items().iter().cloned().collect());
                     }
                 }
                 Identity::Number => {
                     if let Expression::Symbol(number) = factor {
-                        if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
+                        if number.value() == Some(0.0) || String::from("0").eq(&number.label()) {
+                            return Number::new(0.0);
+                        } else if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
                             continue;
                         } else if number.value() == Some(-1.0)
                             || String::from("-1").eq(&number.label())

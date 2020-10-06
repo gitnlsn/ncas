@@ -1,11 +1,9 @@
 /**
  *  Simplication should return an smaller Expression that satisfies normal equality.
- *  
  */
 pub trait Simplifiable {
     fn simplify(&self) -> Expression;
 }
-use crate::exponential::power::Power;
 
 // =================================== //
 //      Recursion on Expression        //
@@ -13,11 +11,107 @@ use crate::exponential::power::Power;
 use crate::base::expression::Expression;
 impl Simplifiable for Expression {
     fn simplify(&self) -> Expression {
+        let mut simplified_expression: Expression;
         match self {
             Expression::Symbol(_) => self.clone(),
-            Expression::Association(_) => self.clone(),
-            Expression::AssociativeOperation(s) => s.simplify(),
-            Expression::CommutativeAssociation(s) => s.simplify(),
+            Expression::Association(s) => {
+                simplified_expression = s.simplify();
+                if self == &simplified_expression {
+                    return simplified_expression;
+                }
+                loop {
+                    let possible_simplification = simplified_expression.simplify();
+                    if possible_simplification == simplified_expression {
+                        break;
+                    }
+                    simplified_expression = possible_simplification;
+                }
+                return simplified_expression;
+            }
+            Expression::AssociativeOperation(s) => {
+                simplified_expression = s.simplify();
+                if self == &simplified_expression {
+                    return simplified_expression;
+                }
+                loop {
+                    let possible_simplification = simplified_expression.simplify();
+                    if possible_simplification == simplified_expression {
+                        break;
+                    }
+                    simplified_expression = possible_simplification;
+                }
+                return simplified_expression;
+            }
+            Expression::CommutativeAssociation(s) => {
+                simplified_expression = s.simplify();
+                if self == &simplified_expression {
+                    return simplified_expression;
+                }
+                loop {
+                    let possible_simplification = simplified_expression.simplify();
+                    if possible_simplification == simplified_expression {
+                        break;
+                    }
+                    simplified_expression = possible_simplification;
+                }
+                return simplified_expression;
+            }
+        }
+    }
+}
+
+impl Expression {
+    fn simplify_inner(&self) -> Expression {
+        match self {
+            Expression::Symbol(_) => self.clone(),
+            Expression::Association(s) => {
+                /* TODO: handle future association identities */
+                // let lhs = s.left_hand_side().simplify();
+                // let rhs = s.right_hand_side().simplify();
+                // match self.id() {
+                //     Identity::*** => {
+                //     }
+                // }
+                return s.simplify();
+            }
+            Expression::AssociativeOperation(operation) => match self.id() {
+                Identity::Power => {
+                    let base = operation.argument().simplify();
+                    let expo = operation.modifier().simplify();
+                    return Power::new(base, expo);
+                }
+                Identity::Logarithm => {
+                    let argument = operation.argument().simplify();
+                    let base = operation.modifier().simplify();
+                    return Log::new(argument, base);
+                }
+                _ => {
+                    panic!("Not expected identity at associative operation");
+                }
+            },
+            Expression::CommutativeAssociation(association) => match self.id() {
+                Identity::Addition => {
+                    return Addition::new(
+                        association
+                            .items()
+                            .iter()
+                            .map(|addend| addend.simplify())
+                            .collect(),
+                    );
+                }
+                Identity::Multiplication => {
+                    return Multiplication::new(
+                        association
+                            .items()
+                            .iter()
+                            .map(|factor| factor.simplify())
+                            .collect(),
+                    );
+                }
+                _ => {
+                    panic!("Not expected identity at associative operation");
+                }
+            },
         }
     }
 }
@@ -26,113 +120,53 @@ impl Simplifiable for Expression {
 //              Arithmetics            //
 // =================================== //
 use crate::base::commutative_association::CommutativeAssociation;
-use std::collections::HashMap;
+use crate::manipulation::identifiable::{Identifiable, Identity};
+use crate::manipulation::simplification_rules::{
+    identities::{
+        additive_common_factor::AdditiveCommonFactor,
+        multiplicative_common_factor::MultiplicativeCommonFactor,
+    },
+    rule::Rule,
+};
 
 use crate::arithmetics::addition::Addition;
 impl Simplifiable for Addition {
     fn simplify(&self) -> Expression {
-        let mut numerical: Option<f64> = None;
-        let mut opposite_list: HashMap<Expression, (Expression, usize)> = HashMap::new();
-        for addend in self.items().iter().map(|item| item.simplify()) {
-            let opposite = (-addend.clone()).simplify();
+        let mut alternative_list =
+            AdditiveCommonFactor::apply(&Expression::CommutativeAssociation(self.boxed_clone()))
+                .iter()
+                .map(|possible_simplification| possible_simplification.simplify_inner())
+                .collect::<HashSet<Expression>>()
+                .iter()
+                .cloned()
+                .collect::<BinaryHeap<Expression>>();
 
-            if addend.id() == Identity::Number {
-                /* accumulates number value */
-                if let Expression::Symbol(symbolic_number) = addend {
-                    if let Some(number) = numerical {
-                        numerical = Some(number + symbolic_number.value().unwrap());
-                    } else {
-                        numerical = Some(symbolic_number.value().unwrap());
-                    }
-                }
-            } else if opposite_list.contains_key(&addend) {
-                /* cancels opposite addend  */
-                let (expression, counter) = opposite_list.remove(&addend).unwrap();
-                if counter > 0 {
-                    opposite_list.insert(addend, (expression, counter - 1));
-                }
-            } else if opposite_list.contains_key(&opposite) {
-                /* increases equal addend  */
-                let (expression, counter) = opposite_list.remove(&opposite).unwrap();
-                opposite_list.insert(opposite, (expression, counter + 1));
-            } else {
-                /* includes new addend  */
-                opposite_list.insert(opposite, (addend, 1));
-            }
+        if alternative_list.is_empty() {
+            return Expression::CommutativeAssociation(self.boxed_clone());
         }
 
-        let mut addends: Vec<Expression> = opposite_list
-            .values()
-            .filter(|(_, counter)| *counter > 0)
-            .map(|(expression, counter)| {
-                if *counter == 1 {
-                    return expression.clone();
-                } else {
-                    Multiplication::new(vec![expression.clone(), Number::new(*counter as f64)])
-                        .simplify()
-                }
-            })
-            .collect();
-
-        if let Some(number) = numerical {
-            addends.push(Number::new(number));
-        }
-
-        return Addition::new(addends);
+        return alternative_list.pop().unwrap();
     }
 }
 
 use crate::arithmetics::multiplication::Multiplication;
 impl Simplifiable for Multiplication {
     fn simplify(&self) -> Expression {
-        let mut numerical: Option<f64> = None;
-        let mut inverse_list: HashMap<Expression, (Expression, usize)> = HashMap::new();
-        for addend in self.items().iter().map(|item| item.simplify()) {
-            let inverse = (1 / addend.clone()).simplify();
-            if addend.id() == Identity::Number {
-                /* accumulates number value */
-                if let Expression::Symbol(symbolic_number) = addend {
-                    if let Some(number) = numerical {
-                        numerical = Some(number * symbolic_number.value().unwrap());
-                    } else {
-                        numerical = Some(symbolic_number.value().unwrap());
-                    }
-                }
-            } else if inverse_list.contains_key(&addend) {
-                let (expression, counter) = inverse_list.remove(&addend).unwrap();
-                if counter > 0 {
-                    inverse_list.insert(addend, (expression, counter - 1));
-                }
-            } else if inverse_list.contains_key(&inverse) {
-                let (expression, counter) = inverse_list.remove(&inverse).unwrap();
-                inverse_list.insert(inverse, (expression, counter + 1));
-            } else {
-                inverse_list.insert(inverse, (addend, 1));
-            }
+        let mut alternative_list = MultiplicativeCommonFactor::apply(
+            &Expression::CommutativeAssociation(self.boxed_clone()),
+        )
+        .iter()
+        .map(|possible_expression| possible_expression.simplify_inner())
+        .collect::<HashSet<Expression>>()
+        .iter()
+        .cloned()
+        .collect::<BinaryHeap<Expression>>();
+
+        if alternative_list.is_empty() {
+            return Expression::CommutativeAssociation(self.boxed_clone());
         }
 
-        let mut factors: Vec<Expression> = inverse_list
-            .values()
-            .filter(|(_, counter)| *counter != 0)
-            .map(|(expression, counter)| {
-                if *counter == 1 {
-                    return expression.clone();
-                } else {
-                    Power::new(expression.clone(), Number::new(*counter as f64))
-                }
-            })
-            .collect();
-
-        if let Some(number) = numerical {
-            if number < 0.0 {
-                factors.push(Number::new(number * -1.0));
-                factors.push(Number::new(-1.0));
-            } else if number > 0.0 {
-                factors.push(Number::new(number));
-            }
-        }
-
-        return Multiplication::new(factors);
+        return alternative_list.pop().unwrap();
     }
 }
 
@@ -140,38 +174,45 @@ impl Simplifiable for Multiplication {
 //              Exponential            //
 // =================================== //
 use crate::base::associative_operation::AssociativeOperation;
-use crate::manipulation::identifiable::{Identifiable, Identity};
+use crate::manipulation::simplification_rules::identities::inverse_power_log::InversePowerLog;
+use std::collections::{BinaryHeap, HashSet};
 
+use crate::exponential::power::Power;
 impl Simplifiable for Power {
     fn simplify(&self) -> Expression {
-        match self.argument().id() {
-            Identity::Logarithm => {
-                if let Expression::AssociativeOperation(logarithm) = self.argument().as_ref() {
-                    if logarithm.modifier() == self.modifier() {
-                        return logarithm.argument().as_ref().clone();
-                    }
-                }
-                return Expression::AssociativeOperation(self.boxed_clone());
-            }
-            _ => return Expression::AssociativeOperation(self.boxed_clone()),
+        let mut alternative_list =
+            InversePowerLog::apply(&Expression::AssociativeOperation(self.boxed_clone()))
+                .iter()
+                .map(|possible_expression| possible_expression.simplify_inner())
+                .collect::<HashSet<Expression>>()
+                .iter()
+                .cloned()
+                .collect::<BinaryHeap<Expression>>();
+
+        if alternative_list.is_empty() {
+            return Expression::AssociativeOperation(self.boxed_clone());
         }
+
+        return alternative_list.pop().unwrap();
     }
 }
 
 use crate::exponential::logarithm::Log;
-use crate::symbols::number::Number;
 impl Simplifiable for Log {
     fn simplify(&self) -> Expression {
-        match self.argument().id() {
-            Identity::Power => {
-                if let Expression::AssociativeOperation(power) = self.argument().as_ref() {
-                    if power.modifier() == self.modifier() {
-                        return power.argument().as_ref().clone();
-                    }
-                }
-                return Expression::AssociativeOperation(self.boxed_clone());
-            }
-            _ => return Expression::AssociativeOperation(self.boxed_clone()),
+        let mut alternative_list =
+            InversePowerLog::apply(&Expression::AssociativeOperation(self.boxed_clone()))
+                .iter()
+                .map(|possible_expression| possible_expression.simplify_inner())
+                .collect::<HashSet<Expression>>()
+                .iter()
+                .cloned()
+                .collect::<BinaryHeap<Expression>>();
+
+        if alternative_list.is_empty() {
+            return Expression::AssociativeOperation(self.boxed_clone());
         }
+
+        return alternative_list.pop().unwrap();
     }
 }

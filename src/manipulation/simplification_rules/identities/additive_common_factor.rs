@@ -7,7 +7,8 @@ use std::collections::HashMap;
 pub struct AdditiveCommonFactor {}
 impl Rule for AdditiveCommonFactor {
     fn apply(expression: &Expression) -> Vec<Expression> {
-        let mut alternatives = Vec::new();
+        let mut alternatives: Vec<Expression> = Vec::new();
+        
         match expression {
             Expression::CommutativeAssociation(a) => {
                 if a.id() == Identity::Addition {
@@ -35,6 +36,11 @@ impl Rule for AdditiveCommonFactor {
             }
             _ => {}
         }
+
+        if alternatives.is_empty() {
+            return vec![expression.clone()];
+        }
+
         return alternatives;
     }
 }

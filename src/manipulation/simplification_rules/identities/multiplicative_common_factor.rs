@@ -12,7 +12,8 @@ use std::collections::HashMap;
 pub struct MultiplicativeCommonFactor {}
 impl Rule for MultiplicativeCommonFactor {
     fn apply(expression: &Expression) -> Vec<Expression> {
-        let mut alternatives = Vec::new();
+        let mut alternatives: Vec<Expression> = Vec::new();
+
         match expression {
             Expression::CommutativeAssociation(association) => {
                 if association.id() == Identity::Multiplication {
@@ -24,27 +25,27 @@ impl Rule for MultiplicativeCommonFactor {
                                     let base = power.argument().as_ref();
                                     let exponent = power.modifier().as_ref();
 
-                                    let opposite = &(1 / base);
+                                    let inverse = &(1 / base);
                                     if power_list.contains_key(base) {
                                         let current_exponent = power_list.remove(base).unwrap();
                                         power_list
                                             .insert(base.clone(), current_exponent + exponent);
-                                    } else if power_list.contains_key(opposite) {
-                                        let counter = power_list.remove(opposite).unwrap();
-                                        power_list.insert(opposite.clone(), counter - exponent);
+                                    } else if power_list.contains_key(inverse) {
+                                        let counter = power_list.remove(inverse).unwrap();
+                                        power_list.insert(inverse.clone(), counter - exponent);
                                     } else {
                                         power_list.insert(base.clone(), exponent.clone());
                                     }
                                 }
                             }
                             _ => {
-                                let opposite = &-factor;
+                                let inverse = &(1 / factor);
                                 if power_list.contains_key(factor) {
                                     let counter = power_list.remove(factor).unwrap();
                                     power_list.insert(factor.clone(), counter + 1);
-                                } else if power_list.contains_key(opposite) {
-                                    let counter = power_list.remove(opposite).unwrap();
-                                    power_list.insert(opposite.clone(), counter - 1);
+                                } else if power_list.contains_key(inverse) {
+                                    let counter = power_list.remove(inverse).unwrap();
+                                    power_list.insert(inverse.clone(), counter - 1);
                                 } else {
                                     power_list.insert(factor.clone(), Number::new(1.0));
                                 }
@@ -52,7 +53,7 @@ impl Rule for MultiplicativeCommonFactor {
                         }
                     }
 
-                    let addends: Vec<Expression> = power_list
+                    let factors: Vec<Expression> = power_list
                         .iter()
                         .filter(|(_, exponent)| match exponent {
                             Expression::Symbol(s) => match exponent.id() {
@@ -66,13 +67,18 @@ impl Rule for MultiplicativeCommonFactor {
                         .map(|(base, exponent)| Power::new(base.clone(), exponent.clone()))
                         .collect();
 
-                    alternatives.push(Multiplication::new(addends));
+                    alternatives.push(Multiplication::new(factors));
                 }
             }
             _ => {}
         }
+
+        if alternatives.is_empty() {
+            return vec![expression.clone()];
+        }
+
         return alternatives;
-    }
+    } /* end - apply */
 }
 
 #[cfg(test)]

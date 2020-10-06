@@ -39,7 +39,7 @@ pub mod manipulation {
     mod ordeable_test;
     pub mod pattern_matchable;
     pub mod simplifiable;
-    pub mod simplifiable_test;
+    mod simplifiable_test;
     pub mod simplification_rules {
         pub mod rule;
         pub mod identities {

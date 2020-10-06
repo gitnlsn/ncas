@@ -13,12 +13,12 @@ impl Rule for InversePowerLog {
         match expression {
             Expression::AssociativeOperation(outer_operation) => match expression.id() {
                 Identity::Power => {
-                    /* First operator is Power */
+                    /* Outer operator is Power */
                     match outer_operation.modifier().as_ref() {
                         Expression::AssociativeOperation(inner_operation) => {
                             match inner_operation.id() {
                                 Identity::Logarithm => {
-                                    /* Second operator is Logarithm */
+                                    /* Inner operator is Logarithm */
                                     let exponential_base: &Expression =
                                         outer_operation.argument().as_ref();
                                     let logarithmic_base: &Expression =
@@ -36,12 +36,12 @@ impl Rule for InversePowerLog {
                     }
                 }
                 Identity::Logarithm => {
-                    /* First operator is Logarithm */
+                    /* Outer operator is Logarithm */
                     match outer_operation.argument().as_ref() {
                         Expression::AssociativeOperation(inner_operation) => {
                             match inner_operation.id() {
                                 Identity::Power => {
-                                    /* Second operator is Power */
+                                    /* Inner operator is Power */
                                     let logarithmic_base: &Expression =
                                         outer_operation.modifier().as_ref();
                                     let exponential_base: &Expression =
@@ -62,6 +62,10 @@ impl Rule for InversePowerLog {
             },
             _ => {}
         };
+
+        if alternatives.is_empty() {
+            return vec![expression.clone()];
+        }
 
         return alternatives;
     }

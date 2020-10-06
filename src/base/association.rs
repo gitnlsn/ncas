@@ -10,7 +10,11 @@ use std::fmt::{Debug, Display};
 /**
  *  Associations between two Expressions.
  *      - associativity
- *      - no commuativity: left and right order matters
+ *      - no commutativity: left and right order matters
+ *      
+ *  Eg:
+ *      - matrix multiplication
+ *      - vector associations (inner product, cross product, )
  */
 pub trait Association:
     Debug + Display + NumericEvaluable + Expandable + Identifiable + Simplifiable + PatternMatchable
