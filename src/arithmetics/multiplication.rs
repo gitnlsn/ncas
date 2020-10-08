@@ -1,6 +1,7 @@
 use crate::base::{commutative_association::CommutativeAssociation, expression::Expression};
 use crate::manipulation::identifiable::{Identifiable, Identity};
 
+use crate::symbols::number::Number;
 use std::collections::BinaryHeap;
 
 #[derive(std::fmt::Debug)]
@@ -15,7 +16,11 @@ impl Multiplication {
      *  - separates sign with single -1.0 Number
      */
     pub fn new(factors: Vec<Expression>) -> Expression {
-        use crate::symbols::number::Number;
+        let factors: Vec<Expression> = factors
+            .iter()
+            .cloned()
+            .filter(|addend| addend != &Number::new(1.0))
+            .collect();
 
         if factors.len() == 0 {
             return Number::new(1.0);
@@ -43,7 +48,9 @@ impl Multiplication {
                     if let Expression::Symbol(number) = factor {
                         if number.value() == Some(0.0) || String::from("0").eq(&number.label()) {
                             return Number::new(0.0);
-                        } else if number.value() == Some(1.0) || String::from("1").eq(&number.label()) {
+                        } else if number.value() == Some(1.0)
+                            || String::from("1").eq(&number.label())
+                        {
                             continue;
                         } else if number.value() == Some(-1.0)
                             || String::from("-1").eq(&number.label())

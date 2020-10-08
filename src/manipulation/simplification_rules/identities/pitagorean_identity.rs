@@ -40,6 +40,7 @@ impl Rule for PitagoricIdentity {
 
                     let mut addends: Vec<Expression> = pitagorean_counter
                         .iter()
+                        .filter(|&(_, counter)| counter != &0)
                         .map(|(expression, counter)| *counter as isize * expression)
                         .collect();
 

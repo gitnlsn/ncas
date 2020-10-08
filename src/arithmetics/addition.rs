@@ -1,6 +1,7 @@
 use crate::base::{commutative_association::CommutativeAssociation, expression::Expression};
 use crate::manipulation::identifiable::{Identifiable, Identity};
 
+use crate::symbols::number::Number;
 use std::collections::BinaryHeap;
 
 #[derive(std::fmt::Debug)]
@@ -10,7 +11,6 @@ pub struct Addition {
 
 impl Addition {
     pub fn new(addends: Vec<Expression>) -> Expression {
-        use crate::symbols::number::Number;
         let addends: Vec<Expression> = addends
             .iter()
             .cloned()

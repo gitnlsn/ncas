@@ -55,15 +55,7 @@ impl Rule for MultiplicativeCommonFactor {
 
                     let factors: Vec<Expression> = power_list
                         .iter()
-                        .filter(|(_, exponent)| match exponent {
-                            Expression::Symbol(s) => match exponent.id() {
-                                Identity::Number => {
-                                    s.value() != Some(0.0) && !s.label().eq(&String::from("0"))
-                                }
-                                _ => true,
-                            },
-                            _ => true,
-                        })
+                        .filter(|&(_, exponent)| exponent != &Number::new(0.0))
                         .map(|(base, exponent)| Power::new(base.clone(), exponent.clone()))
                         .collect();
 

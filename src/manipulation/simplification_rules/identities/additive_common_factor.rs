@@ -28,6 +28,7 @@ impl Rule for AdditiveCommonFactor {
                     }
                     let addends: Vec<Expression> = addend_count_list
                         .iter()
+                        .filter(|&(_, counter)| counter != &0)
                         .map(|(expression, counter)| *counter as isize * expression)
                         .collect();
 
