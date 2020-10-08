@@ -11,6 +11,12 @@ pub struct Addition {
 impl Addition {
     pub fn new(addends: Vec<Expression>) -> Expression {
         use crate::symbols::number::Number;
+        let addends: Vec<Expression> = addends
+            .iter()
+            .cloned()
+            .filter(|addend| addend != &Number::new(0.0))
+            .collect();
+
         if addends.len() == 0 {
             return Number::new(0.0);
         }
@@ -19,7 +25,7 @@ impl Addition {
             let single_addend = addends.iter().cloned().next().unwrap();
             return single_addend;
         }
-        
+
         let mut pending_addends: Vec<Expression> = addends.iter().cloned().collect();
         let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
 
@@ -28,9 +34,7 @@ impl Addition {
             match addend.id() {
                 Identity::Addition => {
                     if let Expression::CommutativeAssociation(addition) = addend {
-                        pending_addends.append(
-                            &mut addition.items().iter().cloned().collect(),
-                        );
+                        pending_addends.append(&mut addition.items().iter().cloned().collect());
                     }
                 }
                 Identity::Number => {

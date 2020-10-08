@@ -14,6 +14,20 @@ impl Simplifiable for Expression {
         let mut simplified_expression: Expression;
         match self {
             Expression::Symbol(_) => self.clone(),
+            Expression::Operation(op) => {
+                simplified_expression = op.simplify();
+                if self == &simplified_expression {
+                    return simplified_expression;
+                }
+                loop {
+                    let possible_simplification = simplified_expression.simplify();
+                    if possible_simplification == simplified_expression {
+                        break;
+                    }
+                    simplified_expression = possible_simplification;
+                }
+                return simplified_expression;
+            }
             Expression::Association(s) => {
                 simplified_expression = s.simplify();
                 if self == &simplified_expression {
@@ -74,6 +88,14 @@ impl Expression {
                 // }
                 return s.simplify();
             }
+            Expression::Operation(op) => match self.id() {
+                Identity::Sin => {
+                    return Sin::new(op.argument().simplify());
+                }
+                _ => {
+                    panic!("Not expected identity at associative operation");
+                }
+            },
             Expression::AssociativeOperation(operation) => match self.id() {
                 Identity::Power => {
                     let base = operation.argument().simplify();
@@ -211,6 +233,41 @@ impl Simplifiable for Log {
 
         if alternative_list.is_empty() {
             return Expression::AssociativeOperation(self.boxed_clone());
+        }
+
+        return alternative_list.pop().unwrap();
+    }
+}
+
+// ============================== //
+//         Trigonometrics         //
+// ============================== //
+use crate::base::operation::Operation;
+
+use crate::trigonometrics::sine::Sin;
+impl Simplifiable for Sin {
+    fn simplify(&self) -> Expression {
+        let mut alternative_list = Vec::new();
+
+        alternative_list.push(Expression::Operation(self.boxed_clone()).simplify_inner());
+
+        if alternative_list.is_empty() {
+            return Expression::Operation(self.boxed_clone());
+        }
+
+        return alternative_list.pop().unwrap();
+    }
+}
+
+use crate::trigonometrics::cossine::Cos;
+impl Simplifiable for Cos {
+    fn simplify(&self) -> Expression {
+        let mut alternative_list = Vec::new();
+
+        alternative_list.push(Expression::Operation(self.boxed_clone()).simplify_inner());
+
+        if alternative_list.is_empty() {
+            return Expression::Operation(self.boxed_clone());
         }
 
         return alternative_list.pop().unwrap();

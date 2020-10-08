@@ -46,6 +46,7 @@ pub mod manipulation {
             pub mod additive_common_factor;
             pub mod inverse_power_log;
             pub mod multiplicative_common_factor;
+            pub mod pitagorean_identity;
         }
     }
     // pub mod replaceable;
@@ -72,4 +73,9 @@ pub mod exponential {
     pub mod logarithm_test;
     pub mod power;
     pub mod power_test;
+}
+
+pub mod trigonometrics {
+    pub mod cossine;
+    pub mod sine;
 }

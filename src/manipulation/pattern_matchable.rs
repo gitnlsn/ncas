@@ -20,6 +20,7 @@ pub trait PatternMatchable {
     fn matches(&self, pattern: &Expression, variable: &String) -> Option<Match>;
 }
 
+
 // =================================== //
 //      Recursion on Expression        //
 // =================================== //
@@ -34,6 +35,7 @@ impl PatternMatchable for Expression {
 
         match self {
             Expression::Symbol(s) => return None, /* not meant to occur */
+            Expression::Operation(op) => return op.matches(pattern, label),
             Expression::Association(a) => return a.matches(pattern, label),
             Expression::AssociativeOperation(op) => return op.matches(pattern, label),
             Expression::CommutativeAssociation(a) => return a.matches(pattern, label),
@@ -43,6 +45,7 @@ impl PatternMatchable for Expression {
 
 use crate::base::commutative_association::CommutativeAssociation;
 use crate::manipulation::identifiable::{Identifiable, Identity};
+
 
 // ====================== //
 //       Arithmetics      //
@@ -151,6 +154,7 @@ impl PatternMatchable for Multiplication {
     }
 }
 
+
 // ====================== //
 //       Exponential      //
 // ====================== //
@@ -208,6 +212,58 @@ impl PatternMatchable for Log {
         if found_match {
             return Some(Match {
                 expression: Log::new(argument, base),
+                variable: Variable::new(label.clone()),
+            });
+        }
+
+        return None;
+    }
+}
+
+
+// ============================== //
+//         Trigonometrics         //
+// ============================== //
+use crate::base::operation::Operation;
+
+use crate::trigonometrics::sine::Sin;
+impl PatternMatchable for Sin {
+    fn matches(&self, pattern: &Expression, label: &String) -> Option<Match> {
+        let mut found_match: bool = false;
+        let argument: Expression = match self.argument().matches(pattern, label) {
+            Some(_) => {
+                found_match = true;
+                Variable::new(label.clone())
+            }
+            None => self.argument().as_ref().clone(),
+        };
+
+        if found_match {
+            return Some(Match {
+                expression: Sin::new(argument),
+                variable: Variable::new(label.clone()),
+            });
+        }
+
+        return None;
+    }
+}
+
+use crate::trigonometrics::cossine::Cos;
+impl PatternMatchable for Cos {
+    fn matches(&self, pattern: &Expression, label: &String) -> Option<Match> {
+        let mut found_match: bool = false;
+        let argument: Expression = match self.argument().matches(pattern, label) {
+            Some(_) => {
+                found_match = true;
+                Variable::new(label.clone())
+            }
+            None => self.argument().as_ref().clone(),
+        };
+
+        if found_match {
+            return Some(Match {
+                expression: Cos::new(argument),
                 variable: Variable::new(label.clone()),
             });
         }

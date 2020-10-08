@@ -1,17 +1,26 @@
 /**
  * Identity for Expression Nodes
  */
- #[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub enum Identity {
+    /* Symbols */
     Number,
     Variable,
     Constant,
+
+    /* Arithmetic Nodes */
     Addition,
     Subtraction,
     Multiplication,
     Division,
+
+    /* Exponentials */
     Power,
     Logarithm,
+
+    /* Trigonometrics */
+    Sin,
+    Cos,
 }
 
 impl std::fmt::Display for Identity {
@@ -29,6 +38,7 @@ impl Identifiable for Expression {
     fn id(&self) -> Identity {
         match self {
             Expression::Symbol(s) => s.id(),
+            Expression::Operation(op) => op.id(),
             Expression::Association(a) => a.id(),
             Expression::AssociativeOperation(op) => op.id(),
             Expression::CommutativeAssociation(op) => op.id(),
@@ -100,5 +110,22 @@ use crate::exponential::logarithm::Log;
 impl Identifiable for Log {
     fn id(&self) -> Identity {
         Identity::Logarithm
+    }
+}
+
+// ============================== //
+//         Trigonometrics         //
+// ============================== //
+use crate::trigonometrics::sine::Sin;
+impl Identifiable for Sin {
+    fn id(&self) -> Identity {
+        Identity::Sin
+    }
+}
+
+use crate::trigonometrics::cossine::Cos;
+impl Identifiable for Cos {
+    fn id(&self) -> Identity {
+        Identity::Cos
     }
 }

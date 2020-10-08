@@ -9,8 +9,8 @@ pub trait Expandable {
 //      Recursion on Expression        //
 // =================================== //
 use crate::base::{
-    associative_operation::AssociativeOperation,
-    commutative_association::CommutativeAssociation, expression::Expression,
+    associative_operation::AssociativeOperation, commutative_association::CommutativeAssociation,
+    expression::Expression, operation::Operation,
 };
 use crate::manipulation::identifiable::{Identifiable, Identity};
 
@@ -20,6 +20,7 @@ impl Expandable for Expression {
             Expression::CommutativeAssociation(comu) => comu.expand(),
             Expression::AssociativeOperation(assoc) => assoc.expand(),
             Expression::Association(assoc) => assoc.expand(),
+            Expression::Operation(op) => op.expand(),
             Expression::Symbol(symbol) => Expression::Symbol(symbol.clone()),
         }
     }
@@ -134,13 +135,30 @@ impl Expandable for Multiplication {
 use crate::exponential::power::Power;
 impl Expandable for Power {
     fn expand(&self) -> Expression {
-        return self.argument().expand() ^ self.modifier().expand();
+        return Power::new(self.argument().expand(), self.modifier().expand());
     }
 }
 
 use crate::exponential::logarithm::Log;
 impl Expandable for Log {
     fn expand(&self) -> Expression {
-        return self.argument().expand() ^ self.modifier().expand();
+        return Log::new(self.argument().expand(), self.modifier().expand());
+    }
+}
+
+// ============================== //
+//         Trigonometrics         //
+// ============================== //
+use crate::trigonometrics::sine::Sin;
+impl Expandable for Sin {
+    fn expand(&self) -> Expression {
+        return Sin::new(self.argument().expand());
+    }
+}
+
+use crate::trigonometrics::cossine::Cos;
+impl Expandable for Cos {
+    fn expand(&self) -> Expression {
+        return Cos::new(self.argument().expand());
     }
 }

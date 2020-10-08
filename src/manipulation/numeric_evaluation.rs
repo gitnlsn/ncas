@@ -16,6 +16,7 @@ impl NumericEvaluable for Expression {
     fn into_num(&self) -> Result<f64, Expression> {
         match self {
             Expression::Symbol(symbol) => symbol.into_num(),
+            Expression::Operation(op) => op.into_num(),
             Expression::Association(association) => association.into_num(),
             Expression::AssociativeOperation(op) => op.into_num(),
             Expression::CommutativeAssociation(op) => op.into_num(),
@@ -137,5 +138,36 @@ impl NumericEvaluable for Log {
         } else {
             return base;
         }
+    }
+}
+
+// ============================== //
+//         Trigonometrics         //
+// ============================== //
+use crate::base::operation::Operation;
+
+use crate::trigonometrics::sine::Sin;
+impl NumericEvaluable for Sin {
+    fn into_num(&self) -> Result<f64, Expression> {
+        let angle = self.argument().into_num();
+
+        if angle.is_ok() {
+            return Ok(angle.unwrap().sin());
+        }
+
+        return angle;
+    }
+}
+
+use crate::trigonometrics::cossine::Cos;
+impl NumericEvaluable for Cos {
+    fn into_num(&self) -> Result<f64, Expression> {
+        let angle = self.argument().into_num();
+
+        if angle.is_ok() {
+            return Ok(angle.unwrap().cos());
+        }
+
+        return angle;
     }
 }

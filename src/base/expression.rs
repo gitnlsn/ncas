@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 use crate::base::{
     association::Association, associative_operation::AssociativeOperation,
-    commutative_association::CommutativeAssociation, symbol::Symbol,
+    commutative_association::CommutativeAssociation, operation::Operation, symbol::Symbol,
 };
 
 /**
@@ -11,7 +11,7 @@ use crate::base::{
  */
 #[derive(Debug, Clone, Hash)]
 pub enum Expression {
-    // Operation(Box<dyn Operation>),
+    Operation(Box<dyn Operation>),
     CommutativeAssociation(Box<dyn CommutativeAssociation>),
     AssociativeOperation(Box<dyn AssociativeOperation>),
     Association(Box<dyn Association>),
@@ -22,6 +22,7 @@ impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expression::Symbol(s) => std::fmt::Display::fmt(s, f),
+            Expression::Operation(op) => std::fmt::Display::fmt(op, f),
             Expression::Association(a) => std::fmt::Display::fmt(a, f),
             Expression::AssociativeOperation(op) => std::fmt::Display::fmt(op, f),
             Expression::CommutativeAssociation(ca) => std::fmt::Display::fmt(ca, f),

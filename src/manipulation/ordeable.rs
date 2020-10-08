@@ -26,15 +26,12 @@ impl Identity {
             Identity::Variable => 130,
 
             /* Operations */
-            /* sine */
+            Identity::Sin => 210,
+            Identity::Cos => 220,
             /* cossine */
             /* tangent */
             /* exp */
             /* ln */
-
-            /* Associations */
-            Identity::Subtraction => 210,
-            Identity::Division => 220,
 
             /* AssociativeOperations */
             Identity::Power => 310,
@@ -45,8 +42,13 @@ impl Identity {
             /* CommutativeAssociations */
             Identity::Multiplication => 410,
             Identity::Addition => 420,
-            /* Defaults to a high number */
-            // _ => panic!(format!("Precedence is not implemented for {}", self)),
+
+            /* Associations */
+            Identity::Subtraction => 1010, /* converted to addition */
+            Identity::Division => 1020,    /* converted to multiplication */
+
+            // Defaults to a high number
+            _ => panic!(format!("Precedence is not implemented for {}", self)),
         }
     }
 }
@@ -77,6 +79,7 @@ impl Ord for Expression {
 
         match (self, other) {
             (Expression::Symbol(s1), Expression::Symbol(s2)) => return s1.cmp(&s2),
+            (Expression::Operation(o1), Expression::Operation(o2)) => return o1.cmp(&o2),
             (Expression::Association(s1), Expression::Association(s2)) => return s1.cmp(&s2),
             (Expression::AssociativeOperation(s1), Expression::AssociativeOperation(s2)) => {
                 return s1.cmp(&s2)
@@ -120,6 +123,22 @@ impl Ord for dyn Symbol {
     }
 }
 impl PartialOrd for dyn Symbol {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+// ============== //
+//    Operation    //
+// ============== //
+use crate::base::operation::Operation;
+impl Ord for dyn Operation {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.argument().cmp(&other.argument())
+    }
+}
+
+impl PartialOrd for dyn Operation {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
