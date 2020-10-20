@@ -1,93 +1,33 @@
-/*
-    Ordering for sorting expressions inside CommutativeAssociations
-
-    Precedence:
-        - Expression::Symbol
-        - Expression::Operation
-        - Expression::Association
-        - Expression::AssociativeOperation
-        - Expression::CommutativeAssociation
-
-*/
-use std::cmp::{Ord, Ordering, PartialOrd};
+use std::cmp::Ordering;
 
 use crate::base::expression::Expression;
-use crate::manipulation::identifiable::{Identifiable, Identity};
-
-// ============================= //
-//      Ordering for Identity    //
-// ============================= //
-impl Identity {
-    fn precedence(&self) -> usize {
-        match self {
-            /* symbols */
-            Identity::Number => 110,
-            Identity::Constant => 120,
-            Identity::Variable => 130,
-
-            /* Operations */
-            Identity::Sin => 210,
-            Identity::Cos => 220,
-            /* cossine */
-            /* tangent */
-            /* exp */
-            /* ln */
-
-            /* AssociativeOperations */
-            Identity::Power => 310,
-            Identity::Logarithm => 320,
-            /* derivative */
-            /* integral */
-
-            /* CommutativeAssociations */
-            Identity::Multiplication => 410,
-            Identity::Addition => 420,
-
-            /* Associations */
-            Identity::Subtraction => 1010, /* converted to addition */
-            Identity::Division => 1020,    /* converted to multiplication */
-
-            // Defaults to a high number
-            _ => panic!(format!("Precedence is not implemented for {}", self)),
-        }
-    }
-}
-
-impl Ord for Identity {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.precedence().cmp(&other.precedence())
-    }
-}
-
-impl PartialOrd for Identity {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
 
 // ============================= //
 //    Ordering for Expression    //
 // ============================= //
 impl Ord for Expression {
     fn cmp(&self, other: &Self) -> Ordering {
-        let self_id = self.id();
-        let other_id = other.id();
-
-        if self_id != other_id {
-            return self_id.cmp(&other_id);
-        }
-
         match (self, other) {
-            (Expression::Symbol(s1), Expression::Symbol(s2)) => return s1.cmp(&s2),
-            (Expression::Operation(o1), Expression::Operation(o2)) => return o1.cmp(&o2),
-            (Expression::Association(s1), Expression::Association(s2)) => return s1.cmp(&s2),
-            (Expression::AssociativeOperation(s1), Expression::AssociativeOperation(s2)) => {
-                return s1.cmp(&s2)
-            }
-            (Expression::CommutativeAssociation(s1), Expression::CommutativeAssociation(s2)) => {
-                return s1.cmp(&s2)
-            }
-            _ => panic!(format!("Not implemented ordering for {}", self.id())),
+            (Expression::Power(p1), Expression::Power(p2)) => return p1.cmp(&p2),
+            (Expression::Logarithm(l1), Expression::Logarithm(l2)) => return l1.cmp(&l2),
+            (Expression::Multiplication(m1), Expression::Multiplication(m2)) => return m1.cmp(&m2),
+            (Expression::Addition(a1), Expression::Addition(a2)) => return a1.cmp(&a2),
+            (Expression::Variable(s1), Expression::Variable(s2)) => return s1.cmp(&s2),
+            (Expression::Integer(s1), Expression::Integer(s2)) => return s1.cmp(&s2),
+            (Expression::Real(s1), Expression::Real(s2)) => return s1.cmp(&s2),
+
+            /* Single Symbols first */
+            (Expression::Integer(_), _) => return Ordering::Less,
+            (Expression::Real(_), _) => return Ordering::Less,
+            (Expression::Variable(_), _) => return Ordering::Less,
+            
+            /* Associative Operations */
+            (Expression::Power(_), _) => return Ordering::Less,
+            (Expression::Logarithm(_), _) => return Ordering::Less,
+            
+            /* Addition and Multiplication should be merged inside commutation */
+            (Expression::Addition(_), _) => return Ordering::Less,
+            (Expression::Multiplication(_), _) => return Ordering::Less,
         }
     }
 }
@@ -98,79 +38,49 @@ impl PartialOrd for Expression {
     }
 }
 
-// ============================ //
-//      Ordering for Symbol     //
-// ============================ //
-use crate::base::symbol::Symbol;
-impl Ord for dyn Symbol {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match (self.id(), other.id()) {
-            (Identity::Number, Identity::Number) => {
-                if self.value() < other.value() {
-                    return Ordering::Less;
-                } else if self.value() > other.value() {
-                    return Ordering::Greater;
-                } else {
-                    return Ordering::Equal;
-                }
-            }
-            (Identity::Number, _) => return Ordering::Less,
-            (_, Identity::Number) => return Ordering::Greater,
-            _ => {
-                return self.label().cmp(&other.label());
-            }
-        }
-    }
-}
-impl PartialOrd for dyn Symbol {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
 // ============== //
 //    Operation    //
 // ============== //
 use crate::base::operation::Operation;
-impl Ord for dyn Operation {
+impl Ord for Operation {
     fn cmp(&self, other: &Self) -> Ordering {
         self.argument().cmp(&other.argument())
     }
 }
 
-impl PartialOrd for dyn Operation {
+impl PartialOrd for Operation {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-// ================= //
-//    Association    //
-// ================= //
-use crate::base::association::Association;
-impl Ord for dyn Association {
-    fn cmp(&self, other: &Self) -> Ordering {
-        match self.left_hand_side().cmp(&other.left_hand_side()) {
-            Ordering::Greater => return Ordering::Greater,
-            Ordering::Less => return Ordering::Less,
-            Ordering::Equal => {
-                return self.right_hand_side().cmp(&other.right_hand_side());
-            }
-        }
-    }
-}
+// // ================= //
+// //    Association    //
+// // ================= //
+// use crate::base::association::Association;
+// impl Ord for dyn Association {
+//     fn cmp(&self, other: &Self) -> Ordering {
+//         match self.left_hand_side().cmp(&other.left_hand_side()) {
+//             Ordering::Greater => return Ordering::Greater,
+//             Ordering::Less => return Ordering::Less,
+//             Ordering::Equal => {
+//                 return self.right_hand_side().cmp(&other.right_hand_side());
+//             }
+//         }
+//     }
+// }
 
-impl PartialOrd for dyn Association {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
+// impl PartialOrd for dyn Association {
+//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+//         Some(self.cmp(other))
+//     }
+// }
 
 // =========================== //
 //    Associative Operation    //
 // =========================== //
 use crate::base::associative_operation::AssociativeOperation;
-impl Ord for dyn AssociativeOperation {
+impl Ord for AssociativeOperation {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.argument().cmp(&other.argument()) {
             Ordering::Greater => return Ordering::Greater,
@@ -181,7 +91,7 @@ impl Ord for dyn AssociativeOperation {
         }
     }
 }
-impl PartialOrd for dyn AssociativeOperation {
+impl PartialOrd for AssociativeOperation {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -191,7 +101,7 @@ impl PartialOrd for dyn AssociativeOperation {
 //    Commutative Association    //
 // ============================= //
 use crate::base::commutative_association::CommutativeAssociation;
-impl Ord for dyn CommutativeAssociation {
+impl Ord for CommutativeAssociation {
     fn cmp(&self, other: &Self) -> Ordering {
         match self.items().len().cmp(&other.items().len()) {
             Ordering::Greater => return Ordering::Greater,
@@ -218,7 +128,7 @@ impl Ord for dyn CommutativeAssociation {
         return Ordering::Equal;
     }
 }
-impl PartialOrd for dyn CommutativeAssociation {
+impl PartialOrd for CommutativeAssociation {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }

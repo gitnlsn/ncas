@@ -1,47 +1,94 @@
 #[cfg(test)]
-mod evaluable {
-    use crate::{
-        manipulation::numeric_evaluation::NumericEvaluable,
-        symbols::{constant::Constant, number::Number, variable::Variable},
-    };
+mod constructor {
+    use crate::base::{expression::Expression, symbol::Symbol};
 
     #[test]
-    fn divides_two_numbers() {
-        let one = Number::new(1.0);
-        let two = Number::new(2.0);
-        let sum = one / two;
+    fn divides_integer_by_integer() {
+        let div = Symbol::integer(6).expr() / Symbol::integer(3).expr();
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 0.5);
+        if let Expression::Integer(n) = div {
+            assert_eq!(n, Symbol::integer(2));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn irreducible_fraction_is_kept_given_gcd() {
+        let div = Symbol::integer(9).expr() / Symbol::integer(6).expr();
+
+        if let Expression::Multiplication(factors) = div {
+            assert!(factors.items().contains(&Symbol::integer(3).expr()));
+            assert!(factors.items().contains(&Expression::power(
+                Symbol::integer(2).expr(),
+                Symbol::integer(-1).expr(),
+            )));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn divides_real_by_real() {
+        let div = Symbol::real(6.0).expr() / Symbol::real(3.0).expr();
+
+        if let Expression::Real(r) = div {
+            assert_eq!(r, Symbol::real(2.0));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn donot_divide_real_by_integer() {
+        let div = Symbol::real(6.0).expr() / Symbol::integer(3).expr();
+
+        if let Expression::Multiplication(factors) = div {
+            assert!(factors.items().contains(&Symbol::real(6.0).expr()));
+            assert!(factors.items().contains(&Expression::power(
+                Symbol::integer(3).expr(),
+                Symbol::integer(-1).expr(),
+            )));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn finds_integer_simplification_in_multiplication() {
+        let div = Symbol::real(6.0).expr() * Symbol::integer(9).expr() / Symbol::integer(3).expr();
+        
+        if let Expression::Multiplication(factors) = div {
+            assert!(factors.items().contains(&Symbol::real(6.0).expr()));
+            assert!(factors.items().contains(&Symbol::integer(3).expr()));
+        } else {
+            panic!();
+        }
+    }
+
+    #[test]
+    fn finds_real_simplification_in_multiplication() {
+        let div = Symbol::real(6.0).expr() * Symbol::integer(9).expr() / Symbol::real(3.0).expr();
+
+        if let Expression::Multiplication(factors) = div {
+            assert!(factors.items().contains(&Symbol::real(2.0).expr()));
+            assert!(factors.items().contains(&Symbol::integer(9).expr()));
+        } else {
+            panic!();
+        }
     }
 
     #[test]
     fn divides_several_numbers() {
-        let mut sum = Number::new(1024.0);
+        let mut sum = Symbol::real(1024.0).expr();
         for _ in 0..10 {
-            sum = sum / Number::new(2.0);
+            sum = sum / Symbol::real(2.0).expr();
         }
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 1.0);
-    }
-
-    #[test]
-    fn divides_constants() {
-        let constant_c = Constant::new(String::from("C"), 1.0);
-        let two = Number::new(2.0);
-        let sum = constant_c / two;
-
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 0.5);
-    }
-
-    #[test]
-    fn do_not_add_variable() {
-        let var_x = Variable::new(String::from("x"));
-        let two = Number::new(2.0);
-        let sum = var_x / two;
-
-        assert!(sum.into_num().is_err());
+        if let Expression::Real(r) = sum {
+            assert_eq!(r, Symbol::real(1.0));
+        } else {
+            panic!();
+        }
     }
 }

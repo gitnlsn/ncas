@@ -27,7 +27,7 @@ impl NumericEvaluable for Expression {
 // =============================== //
 //              Symbols            //
 // =============================== //
-use crate::symbols::{constant::Constant, number::Number, variable::Variable};
+use crate::symbols::{constant::Constant, integer::Integer, number::Number, variable::Variable};
 
 impl NumericEvaluable for Constant {
     fn into_num(&self) -> Result<f64, Expression> {
@@ -39,6 +39,12 @@ impl NumericEvaluable for Constant {
 }
 
 impl NumericEvaluable for Number {
+    fn into_num(&self) -> Result<f64, Expression> {
+        Ok(self.value().expect("Expected number to hold a f64 value"))
+    }
+}
+
+impl NumericEvaluable for Integer {
     fn into_num(&self) -> Result<f64, Expression> {
         Ok(self.value().expect("Expected number to hold a f64 value"))
     }

@@ -1,73 +1,58 @@
 #[cfg(test)]
-mod evaluable {
-    use crate::{
-        arithmetics::multiplication::Multiplication,
-        manipulation::numeric_evaluation::NumericEvaluable,
-        symbols::{constant::Constant, number::Number, variable::Variable},
-    };
+mod constructor {
+    use crate::base::{expression::Expression, symbol::Symbol};
 
     #[test]
-    fn multiply_two_numbers() {
-        let three = Number::new(3.0);
-        let two = Number::new(2.0);
-        let sum = three * two;
+    fn multiplies_symbols() {
+        let one = &Symbol::real(2.0).expr();
+        let three = &Symbol::integer(3).expr();
+        let x = &Symbol::variable("x").expr();
+        let sum: Expression = one * x * three;
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 6.0);
+        if let Expression::Multiplication(m) = sum {
+            let addends = m.items();
+            assert_eq!(addends.len(), 3);
+            assert!(addends.contains(one));
+            assert!(addends.contains(three));
+            assert!(addends.contains(x));
+        } else {
+            panic!();
+        }
     }
 
     #[test]
-    fn multiply_several_numbers() {
-        let mut sum = Number::new(1.0);
+    fn multiply_merge_integers() {
+        let mut sum: Expression = Symbol::integer(1).expr() * Symbol::integer(3).expr();
         for _ in 0..10 {
-            sum = sum * Number::new(2.0);
+            sum = sum * Symbol::integer(2).expr();
         }
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 1024.0);
+        assert_eq!(sum, Symbol::integer(3072).expr());
     }
 
     #[test]
-    fn multiply_constants() {
-        let constant_c = Constant::new(String::from("C"), 3.0);
-        let two = Number::new(2.0);
-        let sum = constant_c * two;
+    fn multiply_merge_reals() {
+        let mut sum: Expression = Symbol::real(1.0).expr() * Symbol::real(3.0).expr();
+        for _ in 0..10 {
+            sum = sum * Symbol::real(2.0).expr();
+        }
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 6.0);
-    }
-
-    #[test]
-    fn do_not_multiply_variable() {
-        let var_x = Variable::new(String::from("x"));
-        let two = Number::new(2.0);
-        let sum = var_x * two;
-
-        assert!(sum.into_num().is_err());
+        assert_eq!(sum, Symbol::real(3072.0).expr());
     }
 
     #[test]
     fn opposed_of_opposed() {
         assert_eq!(
-            Multiplication::new(vec![
-                Number::new(-1.0),
-                Number::new(-1.0),
-                Variable::new(String::from("x")),
-            ]),
-            Variable::new(String::from("x"))
+            Symbol::integer(-1).expr() * Symbol::integer(-1).expr() * Symbol::variable("x").expr(),
+            Symbol::variable("x").expr()
         );
 
         assert_eq!(
-            Number::new(-1.0) * Number::new(-1.0) * Variable::new(String::from("x")),
-            Variable::new(String::from("x"))
-        );
-
-        assert_eq!(
-            Number::new(-1.0)
-                * Number::new(-1.0)
-                * Number::new(-1.0)
-                * Variable::new(String::from("x")),
-            Number::new(-1.0) * Variable::new(String::from("x"))
+            Symbol::integer(-1).expr()
+                * Symbol::integer(-1).expr()
+                * Symbol::integer(-1).expr()
+                * Symbol::variable("x").expr(),
+            Symbol::integer(-1).expr() * Symbol::variable("x").expr()
         );
     }
-}
+} /* end - constructor tests */

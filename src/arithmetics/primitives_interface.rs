@@ -1,6 +1,6 @@
 use crate::{
     base::expression::Expression,
-    symbols::{number::Number, variable::Variable},
+    symbols::{integer::Integer, number::Number, variable::Variable},
 };
 
 pub trait AsExpression {
@@ -15,7 +15,7 @@ impl AsExpression for f64 {
 
 impl AsExpression for isize {
     fn as_expression(self) -> Expression {
-        Number::new(self as f64)
+        Integer::new(self)
     }
 }
 
@@ -42,14 +42,14 @@ impl AsExpression for &str {
 impl std::ops::Neg for Expression {
     type Output = Expression;
     fn neg(self) -> Self {
-        Number::new(-1.0) * self
+        Integer::new(-1) * self
     }
 }
 
 impl std::ops::Neg for &Expression {
     type Output = Expression;
     fn neg(self) -> Expression {
-        Number::new(-1.0) * self
+        Integer::new(-1) * self
     }
 }
 
@@ -59,14 +59,14 @@ impl std::ops::Neg for &Expression {
 impl std::ops::Add<isize> for Expression {
     type Output = Expression;
     fn add(self, other: isize) -> Expression {
-        self + Number::new(other as f64)
+        self + Integer::new(other)
     }
 }
 
 impl std::ops::Add<Expression> for isize {
     type Output = Expression;
     fn add(self, other: Expression) -> Expression {
-        Number::new(self as f64) + other
+        Integer::new(self) + other
     }
 }
 
@@ -115,14 +115,14 @@ impl std::ops::Add<Expression> for String {
 impl std::ops::Add<isize> for &Expression {
     type Output = Expression;
     fn add(self, other: isize) -> Expression {
-        self + Number::new(other as f64)
+        self + Integer::new(other)
     }
 }
 
 impl std::ops::Add<&Expression> for isize {
     type Output = Expression;
     fn add(self, other: &Expression) -> Expression {
-        Number::new(self as f64) + other
+        Integer::new(self) + other
     }
 }
 
@@ -174,14 +174,14 @@ impl std::ops::Add<&Expression> for String {
 impl std::ops::Sub<isize> for Expression {
     type Output = Expression;
     fn sub(self, other: isize) -> Expression {
-        self - Number::new(other as f64)
+        self - Integer::new(other)
     }
 }
 
 impl std::ops::Sub<Expression> for isize {
     type Output = Expression;
     fn sub(self, other: Expression) -> Expression {
-        Number::new(self as f64) - other
+        Integer::new(self) - other
     }
 }
 
@@ -230,14 +230,14 @@ impl std::ops::Sub<Expression> for String {
 impl std::ops::Sub<isize> for &Expression {
     type Output = Expression;
     fn sub(self, other: isize) -> Expression {
-        self - Number::new(other as f64)
+        self - Integer::new(other)
     }
 }
 
 impl std::ops::Sub<&Expression> for isize {
     type Output = Expression;
     fn sub(self, other: &Expression) -> Expression {
-        Number::new(self as f64) - other
+        Integer::new(self) - other
     }
 }
 
@@ -289,14 +289,14 @@ impl std::ops::Sub<&Expression> for String {
 impl std::ops::Mul<isize> for Expression {
     type Output = Expression;
     fn mul(self, other: isize) -> Expression {
-        self * Number::new(other as f64)
+        self * Integer::new(other)
     }
 }
 
 impl std::ops::Mul<Expression> for isize {
     type Output = Expression;
     fn mul(self, other: Expression) -> Expression {
-        Number::new(self as f64) * other
+        Integer::new(self) * other
     }
 }
 
@@ -344,14 +344,14 @@ impl std::ops::Mul<Expression> for String {
 impl std::ops::Mul<isize> for &Expression {
     type Output = Expression;
     fn mul(self, other: isize) -> Expression {
-        self * Number::new(other as f64)
+        self * Integer::new(other)
     }
 }
 
 impl std::ops::Mul<&Expression> for isize {
     type Output = Expression;
     fn mul(self, other: &Expression) -> Expression {
-        Number::new(self as f64) * other
+        Integer::new(self) * other
     }
 }
 
@@ -403,14 +403,14 @@ impl std::ops::Mul<&Expression> for String {
 impl std::ops::Div<isize> for Expression {
     type Output = Expression;
     fn div(self, other: isize) -> Expression {
-        self / Number::new(other as f64)
+        self / Integer::new(other)
     }
 }
 
 impl std::ops::Div<Expression> for isize {
     type Output = Expression;
     fn div(self, other: Expression) -> Expression {
-        Number::new(self as f64) / other
+        Integer::new(self) / other
     }
 }
 
@@ -459,14 +459,14 @@ impl std::ops::Div<Expression> for String {
 impl std::ops::Div<isize> for &Expression {
     type Output = Expression;
     fn div(self, other: isize) -> Expression {
-        self / Number::new(other as f64)
+        self / Integer::new(other)
     }
 }
 
 impl std::ops::Div<&Expression> for isize {
     type Output = Expression;
     fn div(self, other: &Expression) -> Expression {
-        Number::new(self as f64) / other
+        Integer::new(self) / other
     }
 }
 
@@ -509,120 +509,5 @@ impl std::ops::Div<&Expression> for String {
     type Output = Expression;
     fn div(self, other: &Expression) -> Expression {
         Variable::new(self) / other
-    }
-}
-
-// =================== //
-//        Power        //
-// =================== //
-impl std::ops::BitXor<isize> for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: isize) -> Expression {
-        self ^ Number::new(other as f64)
-    }
-}
-
-impl std::ops::BitXor<f64> for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: f64) -> Expression {
-        self ^ Number::new(other)
-    }
-}
-
-impl std::ops::BitXor<String> for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: String) -> Expression {
-        self ^ Variable::new(other)
-    }
-}
-
-impl std::ops::BitXor<&str> for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: &str) -> Expression {
-        self ^ Variable::new(String::from(other))
-    }
-}
-
-impl std::ops::BitXor<Expression> for isize {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Number::new(self as f64) ^ other
-    }
-}
-
-impl std::ops::BitXor<Expression> for f64 {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Number::new(self) ^ other
-    }
-}
-
-impl std::ops::BitXor<Expression> for String {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Variable::new(self) ^ other
-    }
-}
-
-impl std::ops::BitXor<Expression> for &str {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Variable::new(String::from(self)) ^ other
-    }
-}
-
-impl std::ops::BitXor<isize> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: isize) -> Expression {
-        self ^ Number::new(other as f64)
-    }
-}
-
-impl std::ops::BitXor<f64> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: f64) -> Expression {
-        self ^ Number::new(other)
-    }
-}
-
-impl std::ops::BitXor<String> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: String) -> Expression {
-        self ^ Variable::new(other)
-    }
-}
-
-impl std::ops::BitXor<&str> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: &str) -> Expression {
-        self ^ Variable::new(String::from(other))
-    }
-}
-
-impl std::ops::BitXor<&Expression> for isize {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Number::new(self as f64) ^ other
-    }
-}
-
-impl std::ops::BitXor<&Expression> for f64 {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Number::new(self) ^ other
-    }
-}
-
-impl std::ops::BitXor<&Expression> for String {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Variable::new(self) ^ other
-    }
-}
-
-impl std::ops::BitXor<&Expression> for &str {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Variable::new(String::from(self)) ^ other
     }
 }

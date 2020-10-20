@@ -27,7 +27,9 @@ mod symbol {
         assert!(Number::new(0.05) < Number::new(1.0));
         assert!(Number::new(0.0) < Number::new(1.0));
         assert!(Number::new(1.0) < Number::new(2.0));
-        assert!(Number::new(2.0) < Number::new(10.0));
+
+        /* interesting */
+        assert!(Number::new(2.0) > Number::new(10.0));
     }
 
     #[test]
@@ -55,6 +57,16 @@ mod symbol {
         /* interesting! */
         assert!(Variable::new(String::from("A")) < Variable::new(String::from("a")));
         assert!(Variable::new(String::from("Z")) < Variable::new(String::from("a")));
+    }
+
+    #[test]
+    fn symbolic_numeric_comparable() {
+        use crate::symbols::{number::Number, variable::Variable};
+        let a = &Variable::new(String::from("a"));
+
+        /* Number < Constant */
+        assert!(a + Number::new(1.0) > a.clone());
+        assert!(a - Number::new(1.0) < a.clone()); // Todo: requires normal comparison
     }
 }
 
@@ -189,7 +201,7 @@ mod associative_operation {
         let c = &Variable::new(String::from("c"));
         let d = &Variable::new(String::from("d"));
 
-        assert!(a ^ (a + a + a) < b ^ (a + a + a + a));
-        assert!(a ^ (a + b + c) < a ^ (a + b + c + d));
+        assert!(a.pow(&(a + a + a)) < b.pow(&(a + a + a + a)));
+        assert!(a.pow(&(a + b + c)) < a.pow(&(a + b + c + d)));
     }
 }

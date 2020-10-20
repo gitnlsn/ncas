@@ -1,14 +1,15 @@
 use crate::arithmetics::addition::Addition;
 use crate::base::expression::Expression;
 use crate::manipulation::{identifiable::Identity, simplification_rules::rule::Rule};
+use crate::symbols::integer::Integer;
 
 use std::collections::HashMap;
 
-pub struct AdditiveCommonFactor {}
-impl Rule for AdditiveCommonFactor {
+pub struct AdditiveCommonAddend {}
+impl Rule for AdditiveCommonAddend {
     fn apply(expression: &Expression) -> Vec<Expression> {
         let mut alternatives: Vec<Expression> = Vec::new();
-        
+
         match expression {
             Expression::CommutativeAssociation(a) => {
                 if a.id() == Identity::Addition {
@@ -29,7 +30,7 @@ impl Rule for AdditiveCommonFactor {
                     let addends: Vec<Expression> = addend_count_list
                         .iter()
                         .filter(|&(_, counter)| counter != &0)
-                        .map(|(expression, counter)| *counter as isize * expression)
+                        .map(|(expression, counter)| Integer::new(*counter) * expression)
                         .collect();
 
                     alternatives.push(Addition::new(addends));
@@ -66,7 +67,7 @@ mod test {
             Variable::new(String::from("b")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -89,7 +90,7 @@ mod test {
             Variable::new(String::from("a")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
 
         assert_eq!(factored, expected);
     }
@@ -109,7 +110,9 @@ mod test {
             2 * Variable::new(String::from("a")) * Variable::new(String::from("b")),
         ]);
 
-        let factored = AdditiveCommonFactor::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
+
+        println!("{}\n{}", factored, expected);
 
         assert_eq!(factored, expected);
     }

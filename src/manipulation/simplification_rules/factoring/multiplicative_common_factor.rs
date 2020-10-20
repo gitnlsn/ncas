@@ -5,7 +5,7 @@ use crate::manipulation::{
     identifiable::{Identifiable, Identity},
     simplification_rules::rule::Rule,
 };
-use crate::symbols::number::Number;
+use crate::symbols::{integer::Integer, number::Number};
 
 use std::collections::HashMap;
 
@@ -47,7 +47,7 @@ impl Rule for MultiplicativeCommonFactor {
                                     let counter = power_list.remove(inverse).unwrap();
                                     power_list.insert(inverse.clone(), counter - 1);
                                 } else {
-                                    power_list.insert(factor.clone(), Number::new(1.0));
+                                    power_list.insert(factor.clone(), Integer::new(1));
                                 }
                             }
                         }
@@ -55,7 +55,9 @@ impl Rule for MultiplicativeCommonFactor {
 
                     let factors: Vec<Expression> = power_list
                         .iter()
-                        .filter(|&(_, exponent)| exponent != &Number::new(0.0))
+                        .filter(|&(_, exponent)| {
+                            exponent != &Number::new(0.0) && exponent != &Integer::new(0)
+                        })
                         .map(|(base, exponent)| Power::new(base.clone(), exponent.clone()))
                         .collect();
 
@@ -90,7 +92,7 @@ mod test {
 
         let expected = Multiplication::new(vec![
             Variable::new(String::from("a"))
-                ^ (Number::new(1.0) + Number::new(1.0) + Number::new(1.0)),
+                .pow(&(Integer::new(1) + Integer::new(1) + Integer::new(1))),
             Variable::new(String::from("b")),
         ]);
 
@@ -104,13 +106,16 @@ mod test {
     #[test]
     fn factors_expressions() {
         use crate::symbols::variable::Variable;
-        let n1 = &Number::new(1.0);
+        let n1 = &Integer::new(1);
         let a = &Variable::new(String::from("a"));
         let b = &Variable::new(String::from("b"));
 
         let expression = Multiplication::new(vec![a * b, a * b, a * b, a.clone(), b.clone()]);
 
-        let expected = Multiplication::new(vec![a ^ (n1 + n1 + n1 + n1), b ^ (n1 + n1 + n1 + n1)]);
+        let expected = Multiplication::new(vec![
+            a.pow(&(n1 + n1 + n1 + n1)),
+            b.pow(&(n1 + n1 + n1 + n1)),
+        ]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
             .pop()
@@ -123,13 +128,13 @@ mod test {
     fn subtracts_inverse() {
         use crate::symbols::variable::Variable;
 
-        let n1 = &Number::new(1.0);
+        let n1 = &Integer::new(1);
         let a = &Variable::new(String::from("a"));
         let b = &Variable::new(String::from("b"));
 
         let expression = Multiplication::new(vec![a / b, a / b, a / b]);
 
-        let expected = Multiplication::new(vec![a ^ (n1 + n1 + n1), b ^ (-n1 - n1 - n1)]);
+        let expected = Multiplication::new(vec![a.pow(&(n1 + n1 + n1)), b.pow(&(-n1 - n1 - n1))]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
             .pop()
@@ -142,13 +147,13 @@ mod test {
     fn zero_power_wont_go_to_one() {
         use crate::symbols::variable::Variable;
 
-        let n1 = &Number::new(1.0);
+        let n1 = &Integer::new(1);
         let a = &Variable::new(String::from("a"));
         let b = &Variable::new(String::from("b"));
 
         let expression = Multiplication::new(vec![a / b, b / a]);
 
-        let expected = Multiplication::new(vec![a ^ (n1 - n1), b ^ (n1 - n1)]);
+        let expected = Multiplication::new(vec![a.pow(&(n1 - n1)), b.pow(&(n1 - n1))]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
             .pop()

@@ -34,7 +34,7 @@ impl PatternMatchable for Expression {
         }
 
         match self {
-            Expression::Symbol(s) => return None, /* not meant to occur */
+            Expression::Symbol(_) => return None, /* not meant to occur */
             Expression::Operation(op) => return op.matches(pattern, label),
             Expression::Association(a) => return a.matches(pattern, label),
             Expression::AssociativeOperation(op) => return op.matches(pattern, label),

@@ -1,123 +1,72 @@
 #[cfg(test)]
 mod evaluable {
-    use crate::{
-        exponential::power::Power,
-        manipulation::numeric_evaluation::NumericEvaluable,
-        symbols::{number::Number, variable::Variable},
-    };
+    use crate::base::{expression::Expression, symbol::Symbol};
 
     #[test]
-    fn sample_1() {
-        /* Must work constructor */
-        let two_to_two = Power::new(Number::new(2.0), Number::new(2.0));
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
+    fn evaluates_integer_to_real() {
+        let two = Symbol::integer(2).expr();
+        let three = Symbol::real(3.0).expr();
+        let two_to_three = two.clone().pow(three.clone());
+
+        if let Expression::Real(r) = two_to_three {
+            assert_eq!(r, Symbol::real(8.0));
+        }
     }
 
     #[test]
-    fn sample_2() {
-        /* Operator overloading */
-        let two_to_two = &(Number::new(2.0) ^ Number::new(2.0));
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
+    fn evaluates_real_to_real() {
+        let two = Symbol::real(2.0).expr();
+        let three = Symbol::real(3.0).expr();
+        let two_to_three = two.clone().pow(three.clone());
+
+        if let Expression::Real(r) = two_to_three {
+            assert_eq!(r, Symbol::real(8.0));
+        }
     }
 
     #[test]
-    fn sample_3() {
-        /* Primitives interface */
-        let two_to_two = &(2.0 ^ Number::new(2.0));
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
+    fn evaluates_real_to_integer() {
+        let two = Symbol::real(2.0).expr();
+        let three = Symbol::integer(3).expr();
+        let two_to_three = two.clone().pow(three.clone());
 
-        let two_to_two = &(2 ^ Number::new(2.0));
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
-
-        let two_to_two = &(Number::new(2.0) ^ 2.0);
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
-
-        let two_to_two = &(Number::new(2.0) ^ 2);
-        assert_eq!(two_to_two.into_num(), Ok(4.0));
+        if let Expression::Real(r) = two_to_three {
+            assert_eq!(r, Symbol::real(8.0));
+        }
     }
 
     #[test]
-    fn sample_4() {
-        /* Incorporates expressions from string */
-        let two_to_two = &("a" ^ Number::new(2.0));
-        assert_eq!(
-            two_to_two,
-            &(Variable::new(String::from("a")) ^ Number::new(2.0))
-        );
+    fn evaluates_integer_to_integer() {
+        let two = Symbol::integer(2).expr();
+        let three = Symbol::integer(3).expr();
+        let two_to_three = two.clone().pow(three.clone());
 
-        let two_to_two = &(Number::new(2.0) ^ "a");
-        assert_eq!(
-            two_to_two,
-            &(Number::new(2.0) ^ Variable::new(String::from("a")))
-        );
-    }
-}
-
-#[cfg(test)]
-mod evaluable_against_other_operations {
-    use crate::{manipulation::numeric_evaluation::NumericEvaluable, symbols::number::Number};
-
-    #[test]
-    fn addition() {
-        let three = &Number::new(3.0);
-
-        assert_eq!(
-            (three ^ (three + three)).into_num(), /* 3 ^ (3 * 3) == 729 */
-            Ok(729.0)
-        );
-
-        assert_eq!(
-            ((three + three) ^ three).into_num(), /* (3 + 3) ^ 3 == 216 */
-            Ok(216.0)
-        );
+        if let Expression::Integer(n) = two_to_three {
+            assert_eq!(n, Symbol::integer(8));
+        }
     }
 
     #[test]
-    fn multiplication() {
-        /* Chains agains multiplication commutation */
-        let three = &Number::new(3.0);
+    fn addition_to_integer() {
+        let arg = Symbol::variable("a").expr() + Symbol::real(2.0).expr();
+        let three = Symbol::integer(3).expr();
+        let two_to_three = arg.clone().pow(three.clone());
 
-        assert_eq!(
-            (three ^ (three * three)).into_num(), /* 3 ^ (3 * 3) == 19683 */
-            Ok(19683.0)
-        );
-
-        assert_eq!(
-            ((three * three) ^ three).into_num(), /* (3 * 3) ^ 3 == 729 */
-            Ok(729.0)
-        );
+        if let Expression::Power(p) = two_to_three {
+            assert_eq!(p.argument(), arg);
+            assert_eq!(p.modifier(), three);
+        }
     }
 
     #[test]
-    fn subtraction() {
-        /* Chains agains subtraction commutation */
-        let three = &Number::new(3.0);
-        let one = &Number::new(1.0);
+    fn multiplication_to_integer() {
+        let arg = Symbol::variable("a").expr() * Symbol::integer(2).expr();
+        let three = Symbol::real(3.0).expr();
+        let two_to_three = arg.clone().pow(three.clone());
 
-        assert_eq!(
-            (three ^ (three - one)).into_num(), /* 3 ^ (3 - 1) == 9 */
-            Ok(9.0)
-        );
-
-        assert_eq!(
-            ((three - one) ^ three).into_num(), /* (3 - 1) ^ 3 == 8 */
-            Ok(8.0)
-        );
-    }
-
-    #[test]
-    fn division() {
-        /* Chains agains subtraction commutation */
-        let three = &Number::new(3.0);
-
-        assert_eq!(
-            (three ^ (three / three)).into_num(), /* 3 ^ (3 / 3) == 3 */
-            Ok(3.0)
-        );
-
-        assert_eq!(
-            ((three / three) ^ three).into_num(), /* (3 / 3) ^ 3 == 1 */
-            Ok(1.0)
-        );
+        if let Expression::Power(p) = two_to_three {
+            assert_eq!(p.argument(), arg);
+            assert_eq!(p.modifier(), three);
+        }
     }
 }

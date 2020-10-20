@@ -1,67 +1,77 @@
-use crate::base::{commutative_association::CommutativeAssociation, expression::Expression};
-use crate::manipulation::identifiable::{Identifiable, Identity};
+use crate::base::{
+    commutative_association::CommutativeAssociation, expression::Expression, symbol::Symbol,
+};
+use num::bigint::BigInt;
 
-use crate::symbols::number::Number;
-use std::collections::BinaryHeap;
-
-#[derive(std::fmt::Debug)]
-pub struct Addition {
-    items: BinaryHeap<Expression>,
-}
-
-impl Addition {
-    pub fn new(addends: Vec<Expression>) -> Expression {
+impl Expression {
+    /**
+     * Builds a additive expression
+     *  - ignores neutral element
+     */
+    pub fn addition(addends: Vec<Expression>) -> Expression {
         let addends: Vec<Expression> = addends
             .iter()
             .cloned()
-            .filter(|addend| addend != &Number::new(0.0))
+            .filter(|addend| match addend {
+                Expression::Real(r) => r != &Symbol::real(0.0),
+                Expression::Integer(n) => n != &Symbol::integer(0),
+                _ => true,
+            })
             .collect();
 
-        if addends.len() == 0 {
-            return Number::new(0.0);
-        }
-
-        if addends.len() == 1 {
-            let single_addend = addends.iter().cloned().next().unwrap();
-            return single_addend;
-        }
-
         let mut pending_addends: Vec<Expression> = addends.iter().cloned().collect();
-        let mut items_vec: BinaryHeap<Expression> = BinaryHeap::new();
+        let mut items_vec: Vec<Expression> = Vec::new();
+        let mut integer: Symbol<BigInt> = Symbol::integer(0);
+        let mut real: Symbol<f64> = Symbol::real(0.0);
 
         while !pending_addends.is_empty() {
             let addend = &pending_addends.pop().unwrap();
-            match addend.id() {
-                Identity::Addition => {
-                    if let Expression::CommutativeAssociation(addition) = addend {
-                        pending_addends.append(&mut addition.items().iter().cloned().collect());
-                    }
+            match addend {
+                Expression::Addition(a) => {
+                    pending_addends.append(&mut a.items());
                 }
-                Identity::Number => {
-                    if let Expression::Symbol(number) = addend {
-                        if number.value() == Some(0.0) || String::from("0").eq(&number.label()) {
-                            continue;
-                        }
+                Expression::Real(r) => {
+                    if r == &Symbol::real(0.0) {
+                        continue;
                     }
-                    items_vec.push(addend.clone());
+                    real = real + r;
+                }
+                Expression::Integer(n) => {
+                    integer = integer + n;
                 }
                 _ => {
                     items_vec.push(addend.clone());
                 }
             }
         }
-        return Expression::CommutativeAssociation(Box::new(Self { items: items_vec }));
-    }
-}
 
-impl CommutativeAssociation for Addition {
-    fn items(&self) -> Vec<Expression> {
-        self.items.clone().into_sorted_vec()
-    }
-    fn boxed_clone(&self) -> Box<dyn CommutativeAssociation> {
-        Box::new(Self {
-            items: self.items.clone(),
-        })
+        if integer < Symbol::integer(0) {
+            items_vec.push(Expression::multiplication(vec![
+                Symbol::integer(-1).expr(),
+                (Symbol::integer(-1) * integer).expr(),
+            ]));
+        } else if integer > Symbol::integer(0) {
+            items_vec.push(integer.expr());
+        }
+
+        if real < Symbol::real(0.0) {
+            items_vec.push(Expression::multiplication(vec![
+                Symbol::integer(-1).expr(),
+                (Symbol::real(-1.0) * real).expr(),
+            ]));
+        } else if real > Symbol::real(0.0) {
+            items_vec.push(real.expr());
+        }
+
+        if items_vec.len() == 0 {
+            return Symbol::integer(0).expr();
+        }
+
+        if items_vec.len() == 1 {
+            return items_vec.pop().unwrap();
+        }
+
+        return Expression::Addition(CommutativeAssociation::new(items_vec));
     }
 }
 
@@ -71,47 +81,27 @@ impl CommutativeAssociation for Addition {
 impl std::ops::Add for Expression {
     type Output = Expression;
     fn add(self, other: Expression) -> Expression {
-        Addition::new(vec![self, other])
+        Expression::addition(vec![self, other])
     }
 }
 
 impl std::ops::Add<&Expression> for Expression {
     type Output = Expression;
     fn add(self, other: &Expression) -> Expression {
-        Addition::new(vec![self, other.clone()])
+        self + other.clone()
     }
 }
 
 impl std::ops::Add<&Expression> for &Expression {
     type Output = Expression;
     fn add(self, other: &Expression) -> Expression {
-        Addition::new(vec![self.clone(), other.clone()])
+        self.clone() + other.clone()
     }
 }
 
 impl std::ops::Add<Expression> for &Expression {
     type Output = Expression;
     fn add(self, other: Expression) -> Expression {
-        Addition::new(vec![self.clone(), other])
-    }
-}
-
-/*
-    Debug implementation
-*/
-impl std::fmt::Display for Addition {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.items().is_empty() {
-            return write!(f, "");
-        }
-        let self_items = self.items();
-        let mut iterator = self_items.iter();
-        if let Some(first_item) = iterator.next() {
-            write!(f, "({}", first_item).expect("");
-        }
-        while let Some(item) = iterator.next() {
-            write!(f, " + {}", item).expect("");
-        }
-        write!(f, ")")
+        self.clone() + other
     }
 }

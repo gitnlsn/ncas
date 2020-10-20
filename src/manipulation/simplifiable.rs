@@ -11,65 +11,24 @@ pub trait Simplifiable {
 use crate::base::expression::Expression;
 impl Simplifiable for Expression {
     fn simplify(&self) -> Expression {
-        let mut simplified_expression: Expression;
-        match self {
+        let mut simplified_expression: Expression = match self {
             Expression::Symbol(_) => self.clone(),
-            Expression::Operation(op) => {
-                simplified_expression = op.simplify();
-                if self == &simplified_expression {
-                    return simplified_expression;
-                }
-                loop {
-                    let possible_simplification = simplified_expression.simplify();
-                    if possible_simplification == simplified_expression {
-                        break;
-                    }
-                    simplified_expression = possible_simplification;
-                }
+            Expression::Operation(op) => op.simplify(),
+            Expression::Association(s) => s.simplify(),
+            Expression::AssociativeOperation(s) => s.simplify(),
+            Expression::CommutativeAssociation(s) => s.simplify(),
+        };
+
+        if self == &simplified_expression {
+            return simplified_expression;
+        }
+
+        loop {
+            let possible_simplification = simplified_expression.simplify();
+            if possible_simplification == simplified_expression {
                 return simplified_expression;
             }
-            Expression::Association(s) => {
-                simplified_expression = s.simplify();
-                if self == &simplified_expression {
-                    return simplified_expression;
-                }
-                loop {
-                    let possible_simplification = simplified_expression.simplify();
-                    if possible_simplification == simplified_expression {
-                        break;
-                    }
-                    simplified_expression = possible_simplification;
-                }
-                return simplified_expression;
-            }
-            Expression::AssociativeOperation(s) => {
-                simplified_expression = s.simplify();
-                if self == &simplified_expression {
-                    return simplified_expression;
-                }
-                loop {
-                    let possible_simplification = simplified_expression.simplify();
-                    if possible_simplification == simplified_expression {
-                        break;
-                    }
-                    simplified_expression = possible_simplification;
-                }
-                return simplified_expression;
-            }
-            Expression::CommutativeAssociation(s) => {
-                simplified_expression = s.simplify();
-                if self == &simplified_expression {
-                    return simplified_expression;
-                }
-                loop {
-                    let possible_simplification = simplified_expression.simplify();
-                    if possible_simplification == simplified_expression {
-                        break;
-                    }
-                    simplified_expression = possible_simplification;
-                }
-                return simplified_expression;
-            }
+            simplified_expression = possible_simplification;
         }
     }
 }
@@ -92,8 +51,11 @@ impl Expression {
                 Identity::Sin => {
                     return Sin::new(op.argument().simplify());
                 }
+                Identity::Cos => {
+                    return Cos::new(op.argument().simplify());
+                }
                 _ => {
-                    panic!("Not expected identity at associative operation");
+                    panic!("Not expected identity at operation");
                 }
             },
             Expression::AssociativeOperation(operation) => match self.id() {
@@ -131,7 +93,7 @@ impl Expression {
                     );
                 }
                 _ => {
-                    panic!("Not expected identity at associative operation");
+                    panic!("Not expected identity at commutative operation");
                 }
             },
         }
@@ -144,8 +106,8 @@ impl Expression {
 use crate::base::commutative_association::CommutativeAssociation;
 use crate::manipulation::identifiable::{Identifiable, Identity};
 use crate::manipulation::simplification_rules::{
-    identities::{
-        additive_common_factor::AdditiveCommonFactor,
+    factoring::{
+        additive_common_addend::AdditiveCommonAddend,
         multiplicative_common_factor::MultiplicativeCommonFactor,
     },
     rule::Rule,
@@ -155,7 +117,7 @@ use crate::arithmetics::addition::Addition;
 impl Simplifiable for Addition {
     fn simplify(&self) -> Expression {
         let mut alternative_list =
-            AdditiveCommonFactor::apply(&Expression::CommutativeAssociation(self.boxed_clone()))
+            AdditiveCommonAddend::apply(&Expression::CommutativeAssociation(self.boxed_clone()))
                 .iter()
                 .map(|possible_simplification| possible_simplification.simplify_inner())
                 .collect::<HashSet<Expression>>()

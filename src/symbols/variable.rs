@@ -1,61 +1,44 @@
 use crate::base::{expression::Expression, symbol::Symbol};
 
-/**
- * Symbol implementation
- */
-#[derive(std::clone::Clone, std::fmt::Debug)]
-pub struct Variable {
-    label: String,
-    value: Option<f64>,
-    expression: Option<Expression>,
-}
-
-impl Variable {
-    pub fn new(label: String) -> Expression {
-        Expression::Symbol(Box::new(Self {
-            label: label,
-            value: None,
-            expression: None,
-        }))
-    }
-    pub fn set_expression(&mut self, e: Expression) {
-        self.expression = Some(e);
-    }
-    pub fn get_expression(&self) -> Option<Expression> {
-        self.expression.clone()
-    }
-}
-
-/**
- * Symbol Implementation
- */
-impl Symbol for Variable {
-    fn label(&self) -> String {
-        self.label.clone()
-    }
-    fn value(&self) -> Option<f64> {
-        use crate::manipulation::numeric_evaluation::NumericEvaluable;
-        if let Some(expression) = self.expression.clone() {
-            if let Ok(value) = expression.clone().into_num() {
-                return Some(value);
-            }
+impl Symbol<String> {
+    pub fn variable(label: &str) -> Self {
+        Self {
+            data: String::from(label),
         }
-        self.value
     }
-    fn boxed_clone(&self) -> Box<dyn Symbol> {
-        Box::new(Self {
-            label: self.label.clone(),
-            value: self.value.clone(),
-            expression: self.expression.clone(),
-        })
+    pub fn value(&self) -> Option<f64> {
+        None
+    }
+    pub fn label(&self) -> String {
+        format!("{}", self.data)
+    }
+    pub fn expr(self) -> Expression {
+        Expression::Variable(self)
     }
 }
 
-/*
-    Debug implementation
-*/
-impl std::fmt::Display for Variable {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.label)
+impl std::hash::Hash for Symbol<String> {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.data.hash(state);
+    }
+}
+
+// ================= //
+//      Equality     //
+// ================= //
+impl Eq for Symbol<String> {}
+impl PartialEq for Symbol<String> {
+    fn eq(&self, other: &Self) -> bool {
+        self.data == other.data
+    }
+}
+impl Ord for Symbol<String> {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.label().cmp(&other.label())
+    }
+}
+impl PartialOrd for Symbol<String> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
     }
 }

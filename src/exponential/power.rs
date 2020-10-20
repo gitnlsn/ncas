@@ -1,154 +1,189 @@
-use crate::arithmetics::multiplication::Multiplication;
-use crate::base::{associative_operation::AssociativeOperation, expression::Expression};
-use crate::manipulation::identifiable::{Identifiable, Identity};
-use crate::symbols::number::Number;
+use crate::base::associative_operation::AssociativeOperation;
+use crate::base::{expression::Expression, symbol::Symbol};
 
-#[derive(std::fmt::Debug)]
-pub struct Power {
-    base: Box<Expression>,
-    exp: Box<Expression>,
-}
-
-impl Power {
+impl Expression {
     /**
-     *  Builds power associative operation
-     *      - ignores neutral exponent
+     * Builds power associative operation
+     *  - ignores neutral exponent
+     *  - keeps signal separated
      */
-    pub fn new(base: Expression, exp: Expression) -> Expression {
-        match &exp {
-            Expression::Symbol(s) => match (&exp).id() {
-                Identity::Number => {
-                    if s.value() == Some(1.0) || s.label().eq(&String::from("1")) {
-                        return base.clone();
+    pub fn power(base: Expression, exponent: Expression) -> Expression {
+        match &exponent {
+            Expression::Real(real_exponent) => {
+                if real_exponent == &Symbol::real(1.0) {
+                    return base;
+                }
+                if real_exponent == &Symbol::real(0.0) {
+                    return Symbol::integer(1).expr();
+                }
+
+                match &base {
+                    Expression::Real(real_base) => {
+                        let base_value = real_base.value().unwrap();
+                        let exponent_value = real_exponent.value().unwrap();
+                        let power_value = (base_value).powf(exponent_value);
+                        return Symbol::real(power_value).expr();
                     }
-                    if s.value() == Some(0.0) || s.label().eq(&String::from("0")) {
-                        return Number::new(1.0);
-                    }
-                    let exp_int_value = s.value().unwrap();
-                    if exp_int_value.fract() == 0.0
-                        && exp_int_value == (exp_int_value as isize) as f64
-                    {
-                        match &base {
-                            Expression::CommutativeAssociation(factors_product) => match (&base)
-                                .id()
-                            {
-                                Identity::Multiplication => {
-                                    let produit: f64 = factors_product
-                                        .items()
-                                        .iter()
-                                        .filter(|factor| factor.id() == Identity::Number)
-                                        .fold(1.0, |acc, factor| {
-                                            if let Expression::Symbol(s) = factor {
-                                                return acc * s.value().unwrap();
-                                            } else {
-                                                panic!("Not expected to multiply non numeric");
-                                            }
-                                        });
+                    Expression::Multiplication(base_factors) => {
+                        let mut factor_vec: Vec<Expression> = Vec::new();
 
-                                    let produit = produit.powf(exp_int_value);
+                        /* Sign */
+                        let odd_exponent: bool = real_exponent.value().unwrap() as isize % 2 == 1;
 
-                                    let other_factors: Vec<Expression> = factors_product
-                                        .items()
-                                        .iter()
-                                        .filter(|factor| factor.id() != Identity::Number)
-                                        .cloned()
-                                        .collect();
+                        let is_negative: bool =
+                            match base_factors.items().iter().find(|factor| match factor {
+                                Expression::Integer(n) => n == &Symbol::integer(-1),
+                                _ => false,
+                            }) {
+                                Some(_) => true,
+                                None => false,
+                            };
 
-                                    if produit < 0.0 {
-                                        return Multiplication::new(vec![
-                                            Number::new(-1.0),
-                                            Number::new(-produit),
-                                            Expression::AssociativeOperation(Box::new(Self {
-                                                base: Box::new(Multiplication::new(other_factors)),
-                                                exp: Box::new(exp),
-                                            })),
-                                        ]);
-                                    } else {
-                                        return Multiplication::new(vec![
-                                            Number::new(produit),
-                                            Expression::AssociativeOperation(Box::new(Self {
-                                                base: Box::new(Multiplication::new(other_factors)),
-                                                exp: Box::new(exp),
-                                            })),
-                                        ]);
-                                    }
-                                }
-                                _ => { /* nothing to do */ }
-                            }, /* end - match commutativeOperation */
-                            Expression::Symbol(s) => match (&base).id() {
-                                Identity::Number => {
-                                    /* Number against Number */
-                                    let base_int_value = s.value().unwrap();
-                                    return Number::new(base_int_value.powf(exp_int_value));
+                        if !odd_exponent && is_negative {
+                            factor_vec.push(Symbol::integer(-1).expr());
+                        }
+
+                        /* real */
+                        let possible_real_factor: Option<Expression> = base_factors
+                            .items()
+                            .iter()
+                            .cloned()
+                            .find(|factor| match factor {
+                                Expression::Real(_) => true,
+                                _ => false,
+                            });
+
+                        match possible_real_factor {
+                            Some(expression) => match expression {
+                                Expression::Real(real_base) => {
+                                    let base_value = real_base.value().unwrap();
+                                    let exponent_value = real_exponent.value().unwrap();
+                                    let power_value = (base_value).powf(exponent_value);
+                                    factor_vec.push(Symbol::real(power_value).expr());
                                 }
                                 _ => {}
                             },
-                            _ => { /* nothing to do */ }
+                            _ => {}
+                        };
+
+                        /* remaining factors */
+                        let other_factors: Vec<Expression> = base_factors
+                            .items()
+                            .iter()
+                            .filter(|factor| match factor {
+                                Expression::Real(_) => false,
+                                _ => true,
+                            })
+                            .cloned()
+                            .collect();
+
+                        if !other_factors.is_empty() {
+                            factor_vec.push(Expression::Power(AssociativeOperation::new(
+                                Expression::multiplication(other_factors),
+                                exponent,
+                            )));
+                        }
+
+                        return Expression::multiplication(factor_vec);
+                    } /* end - match multiplication */
+
+                    _ => { /* nothing to do */ }
+                }
+            }
+            Expression::Integer(integer_exponent) => {
+                if integer_exponent == &Symbol::integer(1) {
+                    return base;
+                }
+                if integer_exponent == &Symbol::integer(0) {
+                    return Symbol::integer(1).expr();
+                }
+
+                match &base {
+                    Expression::Integer(integer_base) => {
+                        if integer_exponent.is_negative() {
+                            return Expression::Power(AssociativeOperation::new(
+                                integer_base
+                                    .pow(&integer_exponent.opposite())
+                                    .unwrap()
+                                    .expr(),
+                                Symbol::integer(-1).expr(),
+                            ));
+                        } else {
+                            return integer_base.pow(integer_exponent).unwrap().expr();
                         }
                     }
+                    Expression::Multiplication(base_factors) => {
+                        let mut factor_vec: Vec<Expression> = Vec::new();
+
+                        /* Sign */
+                        let odd_exponent: bool =
+                            integer_exponent.value().unwrap() as isize % 2 == 1;
+
+                        let is_negative: bool =
+                            match base_factors.items().iter().find(|factor| match factor {
+                                Expression::Integer(n) => n == &Symbol::integer(-1),
+                                _ => false,
+                            }) {
+                                Some(_) => true,
+                                None => false,
+                            };
+
+                        if !odd_exponent && is_negative {
+                            factor_vec.push(Symbol::integer(-1).expr());
+                        }
+
+                        /* integer */
+                        let possible_integer_factor: Option<Expression> = base_factors
+                            .items()
+                            .iter()
+                            .cloned()
+                            .find(|factor| match factor {
+                                Expression::Integer(n) => n != &Symbol::integer(-1),
+                                _ => false,
+                            });
+
+                        match possible_integer_factor {
+                            Some(expression) => match expression {
+                                Expression::Integer(integer_base) => {
+                                    let base_value = integer_base.value().unwrap();
+                                    let exponent_value = integer_exponent.value().unwrap();
+                                    let power_value = (base_value).powf(exponent_value) as isize;
+                                    factor_vec.push(Symbol::integer(power_value).expr());
+                                }
+                                _ => { /* nothing to do */ }
+                            },
+                            _ => { /* nothing to do */ }
+                        };
+
+                        /* remaining factors */
+                        let other_factors: Vec<Expression> = base_factors
+                            .items()
+                            .iter()
+                            .filter(|factor| match factor {
+                                Expression::Integer(_) => false,
+                                _ => true,
+                            })
+                            .cloned()
+                            .collect();
+
+                        if !other_factors.is_empty() {
+                            factor_vec.push(Expression::Power(AssociativeOperation::new(
+                                Expression::multiplication(other_factors),
+                                exponent,
+                            )));
+                        }
+
+                        return Expression::multiplication(factor_vec);
+                    } /* end - match multiplication */
+                    _ => { /* nothing to do */ }
                 }
-                _ => { /* nothing to do */ }
-            },
+            }
             _ => { /* nothing to do */ }
-        }
-        return Expression::AssociativeOperation(Box::new(Self {
-            base: Box::new(base),
-            exp: Box::new(exp),
-        }));
+        } /* matcher for exponent */
+        return Expression::Power(AssociativeOperation::new(base, exponent));
     }
-}
 
-impl AssociativeOperation for Power {
-    fn argument(&self) -> &Box<Expression> {
-        &self.base
+    pub fn pow(self, exponent: Expression) -> Expression {
+        Self::power(self, exponent)
     }
-    fn modifier(&self) -> &Box<Expression> {
-        &self.exp
-    }
-    fn boxed_clone(&self) -> Box<dyn AssociativeOperation> {
-        Box::new(Self {
-            base: self.base.clone(),
-            exp: self.exp.clone(),
-        })
-    }
-}
-
-/**
- * Overloads plus (+) Operation
- */
-impl std::ops::BitXor for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Power::new(self, other)
-    }
-}
-
-impl std::ops::BitXor<&Expression> for Expression {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Power::new(self, other.clone())
-    }
-}
-
-impl std::ops::BitXor<&Expression> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: &Expression) -> Expression {
-        Power::new(self.clone(), other.clone())
-    }
-}
-
-impl std::ops::BitXor<Expression> for &Expression {
-    type Output = Expression;
-    fn bitxor(self, other: Expression) -> Expression {
-        Power::new(self.clone(), other.clone())
-    }
-}
-
-/*
-    Debug implementation
-*/
-impl std::fmt::Display for Power {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({} ^ {})", self.base, self.exp)
-    }
-}
+} /* end - power expression */

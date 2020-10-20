@@ -1,47 +1,42 @@
 #[cfg(test)]
-mod evaluable {
-    use crate::{
-        manipulation::numeric_evaluation::NumericEvaluable,
-        symbols::{constant::Constant, number::Number, variable::Variable},
-    };
+mod constructor {
+    use crate::base::{expression::Expression, symbol::Symbol};
 
     #[test]
-    fn add_two_numbers() {
-        let one = Number::new(1.0);
-        let two = Number::new(2.0);
-        let sum = one + two;
+    fn add_symbols() {
+        let one = &Symbol::real(1.0).expr();
+        let three = &Symbol::integer(3).expr();
+        let x = &Symbol::variable("x").expr();
+        let sum: Expression = one + x + three;
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 3.0);
+        if let Expression::Addition(a) = sum {
+            let addends = a.items();
+            assert_eq!(addends.len(), 3);
+            assert!(addends.contains(one));
+            assert!(addends.contains(three));
+            assert!(addends.contains(x));
+        } else {
+            panic!();
+        }
     }
 
     #[test]
-    fn add_several_numbers() {
-        let mut sum = Number::new(0.0);
+    fn addition_merges_integers() {
+        let mut sum: Expression = Symbol::integer(0).expr() + Symbol::integer(3).expr();
         for _ in 0..10 {
-            sum = sum + Number::new(1.0);
+            sum = sum + Symbol::integer(1).expr();
         }
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 10.0);
+        assert_eq!(sum, Symbol::integer(13).expr());
     }
 
     #[test]
-    fn add_constants() {
-        let constant_c = Constant::new(String::from("C"), 1.0);
-        let two = Number::new(2.0);
-        let sum = constant_c + two;
+    fn addition_merges_reals() {
+        let mut sum: Expression = Symbol::real(0.0).expr() + Symbol::real(3.0).expr();
+        for _ in 0..10 {
+            sum = sum + Symbol::real(1.0).expr();
+        }
 
-        assert!(sum.into_num().is_ok());
-        assert_eq!(sum.into_num().unwrap(), 3.0);
+        assert_eq!(sum, Symbol::real(13.0).expr());
     }
-
-    #[test]
-    fn do_not_add_variable() {
-        let var_x = Variable::new(String::from("x"));
-        let two = Number::new(2.0);
-        let sum = var_x + two;
-
-        assert!(sum.into_num().is_err());
-    }
-}
+} /* end - constructor tests */

@@ -1,35 +1,37 @@
 use crate::base::expression::Expression;
-use crate::manipulation::{
-    differentiate::Differentiable, expand::Expandable, identifiable::Identifiable,
-    numeric_evaluation::NumericEvaluable, pattern_matchable::PatternMatchable,
-    simplifiable::Simplifiable,
-};
-
-use std::fmt::{Debug, Display};
+use std::collections::BinaryHeap;
 
 /**
- *  Associations between several Expressions.
- *  Elements must satisfy:
+ *  Associations between several Expressions where elements satisfy:
  *      - associativity
- *      - commuativity
+ *      - commutativity
  */
-pub trait CommutativeAssociation:
-    Debug + Display + NumericEvaluable + Expandable + Identifiable + Simplifiable + PatternMatchable
-{
-    fn items(&self) -> Vec<Expression>;
-    fn boxed_clone(&self) -> Box<dyn CommutativeAssociation>;
+#[derive(Debug, Clone)]
+pub struct CommutativeAssociation {
+    items: BinaryHeap<Expression>,
 }
 
-impl Clone for Box<dyn CommutativeAssociation> {
-    fn clone(&self) -> Self {
-        self.as_ref().boxed_clone()
+impl CommutativeAssociation {
+    /**
+     * Constructor
+     */
+    pub fn new(items: Vec<Expression>) -> Self {
+        Self {
+            items: items.iter().cloned().collect(),
+        }
+    }
+
+    /**
+     * Getter for item list
+     */
+    pub fn items(&self) -> Vec<Expression> {
+        self.items.clone().into_sorted_vec()
     }
 }
 
 use std::hash::{Hash, Hasher};
-impl Hash for dyn CommutativeAssociation {
+impl Hash for CommutativeAssociation {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.id().hash(state);
         for item in self.items().iter() {
             item.hash(state);
         }

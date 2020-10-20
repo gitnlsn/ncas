@@ -1,53 +1,59 @@
-use crate::{
-    arithmetics::{addition::Addition, multiplication::Multiplication},
-    base::expression::Expression,
-    manipulation::identifiable::{Identifiable, Identity},
-    symbols::number::Number,
-};
+use crate::base::{expression::Expression, symbol::Symbol};
 
-#[derive(std::fmt::Debug)]
-pub struct Subtraction {}
-
-impl Subtraction {
-    pub fn new(left_hand_side: Expression, right_hand_side: Expression) -> Expression {
+impl Expression {
+    pub fn subtraction(left_hand_side: Expression, right_hand_side: Expression) -> Expression {
         let mut addends: Vec<Expression> = Vec::new();
-        match left_hand_side.id() {
-            Identity::Number => {
-                if let Expression::Symbol(number) = left_hand_side.clone() {
-                    if number.value() != Some(0.0) && !number.label().eq(&String::from("0")) {
-                        addends.push(left_hand_side.clone());
-                    }
+
+        match &left_hand_side {
+            Expression::Integer(n) => {
+                if n != &Symbol::integer(0) {
+                    addends.push(left_hand_side);
+                }
+            }
+            Expression::Real(r) => {
+                if r != &Symbol::real(0.0) {
+                    addends.push(left_hand_side);
                 }
             }
             _ => {
-                addends.push(left_hand_side.clone());
+                addends.push(left_hand_side);
             }
         }
-        match right_hand_side.id() {
-            Identity::Number => {
-                if let Expression::Symbol(number) = right_hand_side.clone() {
-                    if number.value() != Some(0.0) && !number.label().eq(&String::from("0")) {
-                        addends.push(Multiplication::new(vec![
-                            Number::new(-1.0),
-                            right_hand_side.clone(),
-                        ]));
-                    }
+
+        match &right_hand_side {
+            Expression::Integer(n) => {
+                if n != &Symbol::integer(0) {
+                    addends.push(Expression::multiplication(vec![
+                        Symbol::integer(-1).expr(),
+                        right_hand_side,
+                    ]));
+                }
+            }
+            Expression::Real(r) => {
+                if r != &Symbol::real(0.0) {
+                    addends.push(Expression::multiplication(vec![
+                        Symbol::integer(-1).expr(),
+                        right_hand_side,
+                    ]));
                 }
             }
             _ => {
-                addends.push(Multiplication::new(vec![
-                    Number::new(-1.0),
-                    right_hand_side.clone(),
+                addends.push(Expression::multiplication(vec![
+                    Symbol::integer(-1).expr(),
+                    right_hand_side,
                 ]));
             }
         }
+
         if addends.len() == 0 {
-            return Number::new(0.0);
+            return Symbol::integer(0).expr();
         }
+
         if addends.len() == 1 {
             return addends.pop().unwrap();
         }
-        return Addition::new(addends);
+
+        return Expression::addition(addends);
     }
 }
 
@@ -57,27 +63,44 @@ impl Subtraction {
 impl std::ops::Sub for Expression {
     type Output = Expression;
     fn sub(self, other: Expression) -> Expression {
-        Subtraction::new(self, other)
+        Expression::subtraction(self, other)
     }
 }
 
 impl std::ops::Sub<&Expression> for Expression {
     type Output = Expression;
     fn sub(self, other: &Expression) -> Expression {
-        Subtraction::new(self, other.clone())
+        self - other.clone()
     }
 }
 
 impl std::ops::Sub<&Expression> for &Expression {
     type Output = Expression;
     fn sub(self, other: &Expression) -> Expression {
-        Subtraction::new(self.clone(), other.clone())
+        self.clone() - other.clone()
     }
 }
 
 impl std::ops::Sub<Expression> for &Expression {
     type Output = Expression;
     fn sub(self, other: Expression) -> Expression {
-        Subtraction::new(self.clone(), other)
+        self.clone() - other
+    }
+}
+
+// ========================= //
+//          Negation         //
+// ========================= //
+impl std::ops::Neg for Expression {
+    type Output = Expression;
+    fn neg(self) -> Self {
+        Symbol::integer(-1).expr() * self
+    }
+}
+
+impl std::ops::Neg for &Expression {
+    type Output = Expression;
+    fn neg(self) -> Expression {
+        Symbol::integer(-1).expr() * self
     }
 }
