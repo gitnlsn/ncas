@@ -1,6 +1,18 @@
 #[cfg(test)]
-mod evaluable {
+mod constructor {
     use crate::base::{expression::Expression, symbol::Symbol};
+
+    #[test]
+    fn simplifies_identity_power_log() {
+        /* Must work constructor */
+        let whatever = Symbol::variable("a").expr() + Symbol::variable("b").expr();
+        let trial = Expression::power(
+            whatever.clone(),
+            Expression::logarithm(Symbol::integer(4).expr(), whatever.clone()),
+        );
+
+        assert_eq!(trial, Symbol::integer(4).expr());
+    }
 
     #[test]
     fn evaluates_integer_to_real() {

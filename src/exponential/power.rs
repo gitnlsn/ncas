@@ -9,6 +9,11 @@ impl Expression {
      */
     pub fn power(base: Expression, exponent: Expression) -> Expression {
         match &exponent {
+            Expression::Logarithm(log) => {
+                if base == log.modifier() {
+                    return log.argument();
+                }
+            }
             Expression::Real(real_exponent) => {
                 if real_exponent == &Symbol::real(1.0) {
                     return base;
