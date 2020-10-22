@@ -1,6 +1,9 @@
 use crate::base::{expression::Expression, symbol::Symbol};
 
 impl Symbol<f64> {
+    /**
+     * Constructor for real as Symbol<f64>
+     */
     pub fn real(value: f64) -> Self {
         Self { data: value }
     }

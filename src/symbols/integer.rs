@@ -2,6 +2,9 @@ use crate::base::{expression::Expression, symbol::Symbol};
 use num::bigint::BigInt;
 
 impl Symbol<BigInt> {
+    /**
+     * Constructor for integer as Symbol<BigInt>
+     */
     pub fn integer(value: isize) -> Self {
         Self {
             data: BigInt::from(value),

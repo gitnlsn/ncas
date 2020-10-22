@@ -65,8 +65,8 @@ pub mod arithmetics {
 }
 
 pub mod exponential {
-    // pub mod logarithm;
-    // pub mod logarithm_test;
+    pub mod logarithm;
+    pub mod logarithm_test;
     pub mod power;
     pub mod power_test;
 }

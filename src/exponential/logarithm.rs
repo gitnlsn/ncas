@@ -1,46 +1,40 @@
-use crate::base::{associative_operation::AssociativeOperation, expression::Expression};
-
-#[derive(std::fmt::Debug)]
-pub struct Log {
-    argument: Box<Expression>,
-    base: Box<Expression>,
-}
-
-impl Log {
-    pub fn new(argument: Expression, base: Expression) -> Expression {
-        Expression::AssociativeOperation(Box::new(Self {
-            argument: Box::new(argument),
-            base: Box::new(base),
-        }))
-    }
-}
-
-impl AssociativeOperation for Log {
-    fn argument(&self) -> &Box<Expression> {
-        &self.argument
-    }
-    fn modifier(&self) -> &Box<Expression> {
-        &self.base
-    }
-    fn boxed_clone(&self) -> Box<dyn AssociativeOperation> {
-        Box::new(Self {
-            argument: self.argument.clone(),
-            base: self.base.clone(),
-        })
-    }
-}
+use crate::base::{
+    associative_operation::AssociativeOperation, expression::Expression, symbol::Symbol,
+};
+use num::BigInt;
 
 impl Expression {
-    pub fn log(argument: Expression, base: Expression) -> Expression {
-        Log::new(argument.clone(), base.clone())
-    }
-}
+    pub fn logarithm(argument: Expression, base: Expression) -> Expression {
+        match &argument {
+            Expression::Power(power) => {
+                if base == power.argument() {
+                    return power.modifier();
+                }
+            }
+            Expression::Integer(integer_argument) => match &base {
+                Expression::Integer(integer_base) => {
+                    let log_result: f64 =
+                        (integer_argument.value().unwrap()).log(integer_base.value().unwrap());
+                    if (log_result as isize) as f64 == log_result {
+                        return Symbol::integer(log_result as isize).expr();
+                    }
+                }
+                _ => {}
+            },
+            Expression::Real(real_argument) => match &base {
+                Expression::Real(real_base) => {
+                    let log_result: f64 =
+                        (real_argument.value().unwrap()).log(real_base.value().unwrap());
+                    return Symbol::real(log_result).expr();
+                }
+                _ => {}
+            },
+            _ => {}
+        }
 
-/*
-    Debug implementation
-*/
-impl std::fmt::Display for Log {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "log({}, {})", self.argument, self.base)
+        return Expression::Logarithm(AssociativeOperation::new(argument, base));
+    }
+    pub fn log(self, base: Expression) -> Self {
+        Self::logarithm(self, base)
     }
 }

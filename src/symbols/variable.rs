@@ -1,6 +1,9 @@
 use crate::base::{expression::Expression, symbol::Symbol};
 
 impl Symbol<String> {
+    /**
+     * Constructor for variable as Symbol<String>
+     */
     pub fn variable(label: &str) -> Self {
         Self {
             data: String::from(label),
