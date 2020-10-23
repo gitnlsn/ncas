@@ -8,10 +8,19 @@ use crate::base::expression::Expression;
 impl Ord for Expression {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
+            /* Exponentials */
             (Expression::Power(p1), Expression::Power(p2)) => return p1.cmp(&p2),
             (Expression::Logarithm(l1), Expression::Logarithm(l2)) => return l1.cmp(&l2),
+
+            /* Trigonometrics */
+            (Expression::Sine(a1), Expression::Sine(a2)) => return a1.cmp(&a2),
+            (Expression::Cossine(a1), Expression::Cossine(a2)) => return a1.cmp(&a2),
+
+            /* Commutative Associations */
             (Expression::Multiplication(m1), Expression::Multiplication(m2)) => return m1.cmp(&m2),
             (Expression::Addition(a1), Expression::Addition(a2)) => return a1.cmp(&a2),
+
+            /* Symbols */
             (Expression::Variable(s1), Expression::Variable(s2)) => return s1.cmp(&s2),
             (Expression::Integer(s1), Expression::Integer(s2)) => return s1.cmp(&s2),
             (Expression::Real(s1), Expression::Real(s2)) => return s1.cmp(&s2),
@@ -20,11 +29,15 @@ impl Ord for Expression {
             (Expression::Integer(_), _) => return Ordering::Less,
             (Expression::Real(_), _) => return Ordering::Less,
             (Expression::Variable(_), _) => return Ordering::Less,
-            
+
             /* Associative Operations */
             (Expression::Power(_), _) => return Ordering::Less,
             (Expression::Logarithm(_), _) => return Ordering::Less,
-            
+
+            /* Associative Operations */
+            (Expression::Sine(_), _) => return Ordering::Less,
+            (Expression::Cossine(_), _) => return Ordering::Less,
+
             /* Addition and Multiplication should be merged inside commutation */
             (Expression::Addition(_), _) => return Ordering::Less,
             (Expression::Multiplication(_), _) => return Ordering::Less,

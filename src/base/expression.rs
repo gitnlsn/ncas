@@ -4,7 +4,7 @@ use std::hash::Hash;
 
 use crate::base::{
     associative_operation::AssociativeOperation, commutative_association::CommutativeAssociation,
-    /* operation::Operation, */
+    operation::Operation,
 };
 
 use crate::base::symbol::Symbol;
@@ -26,8 +26,10 @@ pub enum Expression {
     /* Associative Operations */
     Power(AssociativeOperation),
     Logarithm(AssociativeOperation),
-    
+
     /* Single Operations */
+    Sine(Operation),
+    Cossine(Operation),
 }
 
 /**
@@ -36,6 +38,7 @@ pub enum Expression {
 impl Display for Expression {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            /* Symbols */
             Expression::Integer(n) => {
                 return write!(f, "{}", n.label());
             }
@@ -45,12 +48,24 @@ impl Display for Expression {
             Expression::Variable(v) => {
                 return write!(f, "{}", v.label());
             }
+
+            /* Exponential */
             Expression::Power(p) => {
                 return write!(f, "pow({}, {})", p.argument(), p.modifier());
             }
             Expression::Logarithm(l) => {
                 return write!(f, "log({}, {})", l.argument(), l.modifier());
             }
+
+            /* Trigonometrics */
+            Expression::Sine(p) => {
+                return write!(f, "sin({})", p.argument());
+            }
+            Expression::Cossine(l) => {
+                return write!(f, "cos({})", l.argument());
+            }
+
+            /* Commutative associations */
             Expression::Addition(addition) => {
                 if addition.items().is_empty() {
                     return write!(f, "");

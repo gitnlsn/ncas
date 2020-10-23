@@ -12,7 +12,7 @@ mod base {
     #[test]
     fn returns_f64() {
         let foo: Symbol<BigInt> = Symbol::integer(1);
-        assert_eq!(foo.value(), Some(1.0));
+        assert_eq!(foo.value(), Some(1));
     }
 
     #[test]

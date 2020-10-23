@@ -10,8 +10,8 @@ impl Symbol<BigInt> {
             data: BigInt::from(value),
         }
     }
-    pub fn value(&self) -> Option<f64> {
-        num::traits::ToPrimitive::to_f64(&self.data)
+    pub fn value(&self) -> Option<isize> {
+        num::traits::ToPrimitive::to_isize(&self.data)
     }
     pub fn label(&self) -> String {
         format!("{}", self.data)

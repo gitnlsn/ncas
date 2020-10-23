@@ -18,6 +18,9 @@ impl PartialEq for Expression {
 
             (Expression::Power(m1), Expression::Power(m2)) => m1 == m2,
             (Expression::Logarithm(m1), Expression::Logarithm(m2)) => m1 == m2,
+
+            (Expression::Sine(a1), Expression::Sine(a2)) => a1 == a2,
+            (Expression::Cossine(a1), Expression::Cossine(a2)) => a1 == a2,
             _ => false,
         }
     }

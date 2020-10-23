@@ -1,7 +1,6 @@
 use crate::base::{
     associative_operation::AssociativeOperation, expression::Expression, symbol::Symbol,
 };
-use num::BigInt;
 
 impl Expression {
     pub fn logarithm(argument: Expression, base: Expression) -> Expression {
@@ -14,7 +13,7 @@ impl Expression {
             Expression::Integer(integer_argument) => match &base {
                 Expression::Integer(integer_base) => {
                     let log_result: f64 =
-                        (integer_argument.value().unwrap()).log(integer_base.value().unwrap());
+                        (integer_argument.value().unwrap() as f64).log(integer_base.value().unwrap() as f64);
                     if (log_result as isize) as f64 == log_result {
                         return Symbol::integer(log_result as isize).expr();
                     }

@@ -2,7 +2,7 @@ use crate::base::expression::Expression;
 
 #[derive(Debug, Clone)]
 pub struct Operation {
-    argument: Expression,
+    argument: Box<Expression>,
 }
 
 /**
@@ -10,10 +10,12 @@ pub struct Operation {
  */
 impl Operation {
     pub fn new(argument: Expression) -> Self {
-        Self { argument: argument }
+        Self {
+            argument: Box::new(argument),
+        }
     }
     pub fn argument(&self) -> Expression {
-        self.argument.clone()
+        self.argument.as_ref().clone()
     }
 }
 
