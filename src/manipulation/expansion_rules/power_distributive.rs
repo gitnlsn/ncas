@@ -5,8 +5,8 @@ use crate::manipulation::expansion_rules::{
 
 pub struct PowerDistributive {}
 impl Rule for PowerDistributive {
-    fn apply(expression: Expression) -> Expression {
-        match &expression {
+    fn apply(expression: &Expression) -> Expression {
+        match expression {
             Expression::Power(power) => match power.argument() {
                 Expression::Addition(_) => match power.modifier() {
                     Expression::Integer(integer_exponent) => {
@@ -18,12 +18,12 @@ impl Rule for PowerDistributive {
                         }
 
                         if exponent > 0 {
-                            return MultiplicativeDistributive::apply(Expression::multiplication(
+                            return MultiplicativeDistributive::apply(&Expression::multiplication(
                                 factors,
                             ));
                         } else {
                             return Expression::power(
-                                MultiplicativeDistributive::apply(Expression::multiplication(
+                                MultiplicativeDistributive::apply(&Expression::multiplication(
                                     factors,
                                 )),
                                 Symbol::integer(-1).expr(),
@@ -44,7 +44,7 @@ impl Rule for PowerDistributive {
 
                         if let Some(numerator) = exponent_numerator {
                             return Expression::power(
-                                PowerDistributive::apply(Expression::power(
+                                PowerDistributive::apply(&Expression::power(
                                     power.argument(),
                                     numerator
                                 )),
@@ -58,6 +58,6 @@ impl Rule for PowerDistributive {
             },
             _ => {}
         }
-        return expression;
+        return expression.clone();
     }
 }

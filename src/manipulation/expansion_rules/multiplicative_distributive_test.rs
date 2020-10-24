@@ -15,7 +15,7 @@ mod rule_testing {
         let expandable = (a + b) * (c + d);
         let result = a * c + a * d + b * c + b * d;
 
-        assert_eq!(MultiplicativeDistributive::apply(expandable), result);
+        assert_eq!(MultiplicativeDistributive::apply(&expandable), result);
     }
 
     #[test]
@@ -29,6 +29,6 @@ mod rule_testing {
         let expandable = (a + b) * (c + d) * e;
         let result = a * c * e + a * d * e + b * c * e + b * d * e;
 
-        assert_eq!(MultiplicativeDistributive::apply(expandable), result);
+        assert_eq!(MultiplicativeDistributive::apply(&expandable), result);
     }
 }

@@ -1,164 +1,37 @@
-/**
- *
- */
-pub trait Expandable {
-    fn expand(&self) -> Expression;
-}
-
 // =================================== //
 //      Recursion on Expression        //
 // =================================== //
-use crate::base::{
-    associative_operation::AssociativeOperation, commutative_association::CommutativeAssociation,
-    expression::Expression, operation::Operation,
+use crate::{
+    base::expression::Expression,
+    manipulation::expansion_rules::{
+        multiplicative_distributive::MultiplicativeDistributive,
+        power_distributive::PowerDistributive, rule::Rule,
+    },
 };
-use crate::manipulation::identifiable::{Identifiable, Identity};
 
-impl Expandable for Expression {
-    fn expand(&self) -> Expression {
-        match self {
-            Expression::CommutativeAssociation(comu) => comu.expand(),
-            Expression::AssociativeOperation(assoc) => assoc.expand(),
-            Expression::Association(assoc) => assoc.expand(),
-            Expression::Operation(op) => op.expand(),
-            Expression::Symbol(symbol) => Expression::Symbol(symbol.clone()),
-        }
-    }
-}
+impl Expression {
+    pub fn expand(self) -> Expression {
+        /* Rules expansion */
+        let expanded = MultiplicativeDistributive::apply(&self);
+        let expanded = PowerDistributive::apply(&expanded);
 
-// =================================== //
-//              Arithmetics            //
-// =================================== //
-use crate::arithmetics::{addition::Addition, multiplication::Multiplication};
-impl Expandable for Addition {
-    fn expand(&self) -> Expression {
-        Addition::new(
-            self.items()
-                .iter()
-                .map(|item| item.expand() /* Recursion: expands addends */)
-                .collect(),
-        )
-    }
-}
-
-/**
- *  Cross product expects Addition expression only
- */
-fn cross(e1: Expression, e2: Expression) -> Expression {
-    if e2.id() != Identity::Addition {
-        panic!("Cannot apply cross product to expression, with factor different than Addition");
-    }
-
-    match e1.id() {
-        Identity::Addition => {
-            if let (
-                Expression::CommutativeAssociation(a1),
-                Expression::CommutativeAssociation(a2),
-            ) = (e1.clone(), e2.clone())
-            {
-                let mut addends: Vec<Expression> = Vec::new();
-                // ============================= //
-                //      Distributive property    //
-                // ============================= //
-                for a1_item in a1.items().iter() {
-                    for a2_item in a2.items().iter() {
-                        addends.push(a1_item.clone() * a2_item.clone());
-                    }
-                }
-                return Addition::new(addends);
+        /* recursive expansion */
+        match &expanded {
+            Expression::Multiplication(factors) => {
+                return Expression::multiplication(factors.map(&|factor| factor.clone().expand()));
             }
-        }
-        _ => {
-            if let Expression::CommutativeAssociation(a2) = e2.clone() {
-                let mut addends: Vec<Expression> = Vec::new();
-                // ============================= //
-                //      Distributive property    //
-                // ============================= //
-                // for a1_item in a1.items().iter() {
-                // }
-                for a2_item in a2.items().iter() {
-                    addends.push(e1.clone() * a2_item.clone());
-                }
-                return Addition::new(addends);
+            Expression::Addition(addends) => {
+                return Expression::addition(addends.map(&|addend| addend.clone().expand()));
             }
+
+            Expression::Power(power) => {
+                return Expression::power(power.argument().expand(), power.modifier().expand());
+            }
+            Expression::Logarithm(log) => {
+                return Expression::logarithm(log.argument().expand(), log.modifier().expand())
+            }
+
+            _ => return self,
         }
-    }
-
-    panic!("Cannot apply cross product to expression, with factor different than Addition");
-}
-
-impl Expandable for Multiplication {
-    fn expand(&self) -> Expression {
-        let expanded_fators: Vec<Expression> = self
-            .items()
-            .iter()
-            .map(|expression| expression.expand()) /* Recursion: expands factors */
-            .collect();
-
-        let non_expandable: Vec<Expression> = expanded_fators
-            .iter()
-            .filter(|expression| match expression.id() {
-                Identity::Addition => false,
-                _ => true,
-            })
-            .cloned()
-            .collect();
-
-        let expandables: Vec<Expression> = expanded_fators
-            .iter()
-            .filter(|expression| match expression.id() {
-                Identity::Addition => true,
-                _ => false,
-            })
-            .map(|expression| match expression.id() {
-                Identity::Addition => expression.expand(),
-                _ => panic!("Not expected expression different than addition"),
-            })
-            .collect();
-
-        if expandables.is_empty() {
-            return Multiplication::new(non_expandable);
-        }
-
-        return expandables
-            .iter()
-            .cloned()
-            .fold(Multiplication::new(non_expandable), |acc, new| {
-                cross(acc, new)
-            });
-    } /* end - expand method */
-} /* end - Expandable Multiplication */
-
-// =================================== //
-//              Exponential            //
-// =================================== //
-use crate::exponential::power::Power;
-impl Expandable for Power {
-    fn expand(&self) -> Expression {
-        return Power::new(self.argument().expand(), self.modifier().expand());
-    }
-}
-
-use crate::exponential::logarithm::Log;
-impl Expandable for Log {
-    fn expand(&self) -> Expression {
-        return Log::new(self.argument().expand(), self.modifier().expand());
-    }
-}
-
-// ============================== //
-//         Trigonometrics         //
-// ============================== //
-use crate::trigonometrics::sine::Sin;
-impl Expandable for Sin {
-    fn expand(&self) -> Expression {
-        return Sin::new(self.argument().expand());
-    }
-}
-
-use crate::trigonometrics::cossine::Cos;
-impl Expandable for Cos {
-    fn expand(&self) -> Expression {
-        return Cos::new(self.argument().expand());
     }
 }

@@ -23,8 +23,8 @@ pub mod symbols {
 
 pub mod manipulation {
 //     pub mod differentiate;
-    // pub mod expand;
-//     mod expand_test;
+    pub mod expand;
+    mod expand_test;
     pub mod expression_equality; /* TODO (Equality): implement normal form comparison instead of canonical form comparison */
 //     pub mod numeric_evaluation;
     pub mod ordeable;

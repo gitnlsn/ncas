@@ -50,6 +50,10 @@ impl CommutativeAssociation {
         self.items().iter().cloned().find(f)
     }
 
+    pub fn map(&self, f: &dyn Fn(&Expression) -> Expression) -> Vec<Expression> {
+        self.items().iter().map(f).collect()
+    }
+
     /**
      * Get real part of commucative association
      */
@@ -233,5 +237,21 @@ mod getters {
         assert!(filtered.contains(&Symbol::integer(1).expr()));
         assert!(filtered.contains(&Symbol::integer(2).expr()));
         assert!(filtered.contains(&Symbol::integer(3).expr()));
+    }
+
+    #[test]
+    fn map() {
+        let items = CommutativeAssociation::new(vec![
+            Symbol::integer(1).expr(),
+            Symbol::integer(2).expr(),
+            Symbol::integer(4).expr(),
+        ]);
+
+        let mapped = items.map(&|item| item * Symbol::integer(3).expr());
+
+        assert_eq!(mapped.len(), 3);
+        assert!(mapped.contains(&Symbol::integer(3).expr()));
+        assert!(mapped.contains(&Symbol::integer(6).expr()));
+        assert!(mapped.contains(&Symbol::integer(12).expr()));
     }
 }

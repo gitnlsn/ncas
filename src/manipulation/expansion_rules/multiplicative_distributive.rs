@@ -3,8 +3,8 @@ use crate::manipulation::expansion_rules::rule::Rule;
 
 pub struct MultiplicativeDistributive {}
 impl Rule for MultiplicativeDistributive {
-    fn apply(expression: Expression) -> Expression {
-        match &expression {
+    fn apply(expression: &Expression) -> Expression {
+        match expression {
             Expression::Multiplication(factor_list) => {
                 let distributable_addends: Vec<Expression> = factor_list
                     .items()
