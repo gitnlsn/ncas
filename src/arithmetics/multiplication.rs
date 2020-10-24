@@ -7,7 +7,7 @@ impl Expression {
     /**
      * Builds a multiplicative expression
      *  - ignores neutral element
-     *  - separates sign with -1 integer
+     *  - separates sign with -1 integer part
      */
     pub fn multiplication(factors: Vec<Expression>) -> Expression {
         let factors: Vec<Expression> = factors

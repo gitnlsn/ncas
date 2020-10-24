@@ -10,6 +10,8 @@ impl Expression {
     pub fn power(base: Expression, exponent: Expression) -> Expression {
         match &base {
             Expression::Power(power) => {
+                // power of power: (a^b)^c == a^(b*c)
+                //  - solves inverse of inverse
                 return Expression::power(
                     power.argument(),
                     Expression::multiplication(vec![power.modifier(), exponent]),
@@ -35,6 +37,7 @@ impl Expression {
                 match &base {
                     Expression::Integer(integer_base) => {
                         if integer_exponent.is_negative() {
+                            /* denominator rational */
                             return Expression::Power(AssociativeOperation::new(
                                 integer_base
                                     .pow(&integer_exponent.opposite())
@@ -67,11 +70,8 @@ impl Expression {
                         }
 
                         /* integer */
-                        let possible_integer_factor: Option<Expression> = base_factors
-                            .items()
-                            .iter()
-                            .cloned()
-                            .find(|factor| match factor {
+                        let possible_integer_factor: Option<Expression> =
+                            base_factors.get_one(&|factor| match factor {
                                 Expression::Integer(n) => n != &Symbol::integer(-1),
                                 _ => false,
                             });
@@ -90,15 +90,11 @@ impl Expression {
                         };
 
                         /* remaining factors */
-                        let other_factors: Vec<Expression> = base_factors
-                            .items()
-                            .iter()
-                            .filter(|factor| match factor {
-                                Expression::Integer(_) => false,
+                        let other_factors: Vec<Expression> =
+                            base_factors.get(&|factor| match factor {
+                                Expression::Real(_) => false,
                                 _ => true,
-                            })
-                            .cloned()
-                            .collect();
+                            });
 
                         if !other_factors.is_empty() {
                             factor_vec.push(Expression::Power(AssociativeOperation::new(
@@ -130,28 +126,9 @@ impl Expression {
                     Expression::Multiplication(base_factors) => {
                         let mut factor_vec: Vec<Expression> = Vec::new();
 
-                        /* Sign */
-                        let odd_exponent: bool = real_exponent.value().unwrap() as isize % 2 == 1;
-
-                        let is_negative: bool =
-                            match base_factors.items().iter().find(|factor| match factor {
-                                Expression::Integer(n) => n == &Symbol::integer(-1),
-                                _ => false,
-                            }) {
-                                Some(_) => true,
-                                None => false,
-                            };
-
-                        if !odd_exponent && is_negative {
-                            factor_vec.push(Symbol::integer(-1).expr());
-                        }
-
                         /* real */
-                        let possible_real_factor: Option<Expression> = base_factors
-                            .items()
-                            .iter()
-                            .cloned()
-                            .find(|factor| match factor {
+                        let possible_real_factor: Option<Expression> =
+                            base_factors.get_one(&|factor| match factor {
                                 Expression::Real(_) => true,
                                 _ => false,
                             });
@@ -170,15 +147,11 @@ impl Expression {
                         };
 
                         /* remaining factors */
-                        let other_factors: Vec<Expression> = base_factors
-                            .items()
-                            .iter()
-                            .filter(|factor| match factor {
+                        let other_factors: Vec<Expression> =
+                            base_factors.get(&|factor| match factor {
                                 Expression::Real(_) => false,
                                 _ => true,
-                            })
-                            .cloned()
-                            .collect();
+                            });
 
                         if !other_factors.is_empty() {
                             factor_vec.push(Expression::Power(AssociativeOperation::new(

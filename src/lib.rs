@@ -45,6 +45,13 @@ pub mod manipulation {
 //             pub mod multiplicative_common_factor;
 //         }
 //     }
+    pub mod expansion_rules {
+        pub mod rule;
+        pub mod multiplicative_distributive;
+        mod multiplicative_distributive_test;
+        pub mod power_distributive;
+        mod power_distributive_test;
+    }
 //     // pub mod replaceable;
 //     // pub mod simplifiable;
 //     // pub mod sortable;
