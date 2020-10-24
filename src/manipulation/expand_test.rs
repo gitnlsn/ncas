@@ -93,3 +93,30 @@ mod power {
         assert_eq!(expanded, a.clone().pow(a * d + b * d));
     }
 }
+
+#[cfg(test)]
+mod mixed_expansions {
+    use crate::base::symbol::Symbol;
+
+    #[test]
+    fn sample_1() {
+        /* mutiplicative distribution */
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
+        let d = &Symbol::variable("d").expr();
+        let two = &Symbol::integer(2).expr();
+
+        let expanded = ((a + b) * (c + d).pow(two.clone())).expand();
+        let expected = (a * c * c)
+            + (a * c * d)
+            + (a * c * d)
+            + (a * d * d)
+            + (b * c * c)
+            + (b * c * d)
+            + (b * c * d)
+            + (b * d * d);
+
+        assert_eq!(expanded, expected);
+    }
+}

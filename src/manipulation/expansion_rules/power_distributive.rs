@@ -31,11 +31,12 @@ impl Rule for PowerDistributive {
                         }
                     }
                     Expression::Multiplication(exponent_factors) => {
-                        let exponent_numerator = exponent_factors /* expecting one numerator in multiplication */
-                            .get_one(&|factor| match factor {
-                                Expression::Integer(_) => true,
-                                _ => false,
-                            });
+                        let exponent_numerator =
+                            exponent_factors /* expecting one numerator in multiplication */
+                                .get_one(&|factor| match factor {
+                                    Expression::Integer(_) => true,
+                                    _ => false,
+                                });
 
                         let exponent_other = exponent_factors.get(&|factor| match factor {
                             Expression::Integer(_) => false,
@@ -46,14 +47,39 @@ impl Rule for PowerDistributive {
                             return Expression::power(
                                 PowerDistributive::apply(&Expression::power(
                                     power.argument(),
-                                    numerator
+                                    numerator,
                                 )),
-                                Expression::multiplication(exponent_other)
+                                Expression::multiplication(exponent_other),
                             );
                         }
                     }
                     _ => {}
                 },
+                Expression::Multiplication(factors) => {
+                    let additive_factors = factors.get(&|factor| match factor {
+                        Expression::Addition(_) => true,
+                        _ => false,
+                    });
+
+                    let other_factors = factors
+                        .get(&|factor| match factor {
+                            Expression::Addition(_) => false,
+                            _ => true,
+                        })
+                        .iter()
+                        .map(|factor| Expression::power(factor.clone(), power.modifier()))
+                        .collect();
+
+                    return Expression::multiplication(vec![
+                        PowerDistributive::apply(&Expression::power(
+                            MultiplicativeDistributive::apply(&Expression::multiplication(
+                                additive_factors,
+                            )),
+                            power.modifier(),
+                        )),
+                        Expression::multiplication(other_factors),
+                    ]);
+                }
                 _ => {}
             },
             _ => {}

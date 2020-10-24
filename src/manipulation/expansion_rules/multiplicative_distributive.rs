@@ -6,25 +6,16 @@ impl Rule for MultiplicativeDistributive {
     fn apply(expression: &Expression) -> Expression {
         match expression {
             Expression::Multiplication(factor_list) => {
-                let distributable_addends: Vec<Expression> = factor_list
-                    .items()
-                    .iter()
-                    .filter(|factor| match factor {
+                let distributable_addends: Vec<Expression> =
+                    factor_list.get(&|factor| match factor {
                         Expression::Addition(_) => true,
                         _ => false,
-                    })
-                    .cloned()
-                    .collect();
+                    });
 
-                let non_distributable: Vec<Expression> = factor_list
-                    .items()
-                    .iter()
-                    .filter(|factor| match factor {
-                        Expression::Addition(_) => false,
-                        _ => true,
-                    })
-                    .cloned()
-                    .collect();
+                let non_distributable: Vec<Expression> = factor_list.get(&|factor| match factor {
+                    Expression::Addition(_) => false,
+                    _ => true,
+                });
 
                 let mut distributive_sum: Expression =
                     Expression::multiplication(non_distributable);
@@ -102,12 +93,22 @@ mod distribute {
     #[test]
     fn sample_2() {
         let a = &Symbol::variable("a").expr();
-        let b = &Symbol::variable("b").expr();
         let c = &Symbol::variable("c").expr();
         let d = &Symbol::variable("d").expr();
 
-        let result = a * c + a * d + b * c + b * d;
+        let result = a * c + a * d;
 
-        assert_eq!(distribute(a + b, c + d), result);
+        assert_eq!(distribute(a.clone(), c + d), result);
+    }
+
+    #[test]
+    fn sample_3() {
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
+
+        let result = a * c + b * c;
+
+        assert_eq!(distribute(a + b, c.clone()), result);
     }
 }
