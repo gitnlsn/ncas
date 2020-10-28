@@ -2,6 +2,28 @@ use std::cmp::Ordering;
 
 use crate::base::expression::Expression;
 
+impl Expression {
+    /**
+     * Implements ordering between different kinds of expressions
+     */
+    pub fn id(&self) -> usize {
+        match self {
+            Expression::Real(_) => 1010,
+            Expression::Integer(_) => 1020,
+            Expression::Variable(_) => 1030,
+
+            Expression::Power(_) => 2010,
+            Expression::Logarithm(_) => 3010,
+
+            Expression::Sine(_) => 4010,
+            Expression::Cossine(_) => 4020,
+
+            Expression::Multiplication(_) => 6010,
+            Expression::Addition(_) => 6020,
+        }
+    }
+}
+
 // ============================= //
 //    Ordering for Expression    //
 // ============================= //
@@ -25,22 +47,7 @@ impl Ord for Expression {
             (Expression::Integer(s1), Expression::Integer(s2)) => return s1.cmp(&s2),
             (Expression::Real(s1), Expression::Real(s2)) => return s1.cmp(&s2),
 
-            /* Single Symbols first */
-            (Expression::Integer(_), _) => return Ordering::Less,
-            (Expression::Real(_), _) => return Ordering::Less,
-            (Expression::Variable(_), _) => return Ordering::Less,
-
-            /* Associative Operations */
-            (Expression::Power(_), _) => return Ordering::Less,
-            (Expression::Logarithm(_), _) => return Ordering::Less,
-
-            /* Associative Operations */
-            (Expression::Sine(_), _) => return Ordering::Less,
-            (Expression::Cossine(_), _) => return Ordering::Less,
-
-            /* Addition and Multiplication should be merged inside commutation */
-            (Expression::Addition(_), _) => return Ordering::Less,
-            (Expression::Multiplication(_), _) => return Ordering::Less,
+            _ => self.id().cmp(&other.id()),
         }
     }
 }

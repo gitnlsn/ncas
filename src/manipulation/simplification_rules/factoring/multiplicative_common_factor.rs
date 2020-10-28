@@ -1,11 +1,6 @@
-use crate::arithmetics::multiplication::Multiplication;
 use crate::base::expression::Expression;
-use crate::exponential::power::Power;
-use crate::manipulation::{
-    identifiable::{Identifiable, Identity},
-    simplification_rules::rule::Rule,
-};
-use crate::symbols::{integer::Integer, number::Number};
+use crate::base::symbol::Symbol;
+use crate::manipulation::simplification_rules::rule::Rule;
 
 use std::collections::HashMap;
 
@@ -15,54 +10,52 @@ impl Rule for MultiplicativeCommonFactor {
         let mut alternatives: Vec<Expression> = Vec::new();
 
         match expression {
-            Expression::CommutativeAssociation(association) => {
-                if association.id() == Identity::Multiplication {
-                    let mut power_list: HashMap<Expression, Expression> = HashMap::new();
-                    for factor in association.items().iter() {
-                        match factor.id() {
-                            Identity::Power => {
-                                if let Expression::AssociativeOperation(power) = factor {
-                                    let base = power.argument().as_ref();
-                                    let exponent = power.modifier().as_ref();
+            Expression::Multiplication(factors) => {
+                let mut power_list: HashMap<Expression, Expression> = HashMap::new();
+                for factor in factors.items().iter() {
+                    match factor {
+                        Expression::Power(power) => {
+                            let base = power.argument();
+                            let exponent = power.modifier();
 
-                                    let inverse = &(1 / base);
-                                    if power_list.contains_key(base) {
-                                        let current_exponent = power_list.remove(base).unwrap();
-                                        power_list
-                                            .insert(base.clone(), current_exponent + exponent);
-                                    } else if power_list.contains_key(inverse) {
-                                        let counter = power_list.remove(inverse).unwrap();
-                                        power_list.insert(inverse.clone(), counter - exponent);
-                                    } else {
-                                        power_list.insert(base.clone(), exponent.clone());
-                                    }
-                                }
+                            let inverse = &(Symbol::integer(1).expr() / base.clone());
+                            if power_list.contains_key(&base) {
+                                let current_exponent = power_list.remove(&base).unwrap();
+                                power_list.insert(base.clone(), current_exponent + exponent);
+                            } else if power_list.contains_key(inverse) {
+                                let counter = power_list.remove(inverse).unwrap();
+                                power_list.insert(inverse.clone(), counter - exponent);
+                            } else {
+                                power_list.insert(base.clone(), exponent.clone());
                             }
-                            _ => {
-                                let inverse = &(1 / factor);
-                                if power_list.contains_key(factor) {
-                                    let counter = power_list.remove(factor).unwrap();
-                                    power_list.insert(factor.clone(), counter + 1);
-                                } else if power_list.contains_key(inverse) {
-                                    let counter = power_list.remove(inverse).unwrap();
-                                    power_list.insert(inverse.clone(), counter - 1);
-                                } else {
-                                    power_list.insert(factor.clone(), Integer::new(1));
-                                }
+                        }
+                        _ => {
+                            let inverse = &(Symbol::integer(1).expr() / factor);
+                            if power_list.contains_key(factor) {
+                                let counter = power_list.remove(factor).unwrap();
+                                power_list
+                                    .insert(factor.clone(), counter + Symbol::integer(1).expr());
+                            } else if power_list.contains_key(inverse) {
+                                let counter = power_list.remove(inverse).unwrap();
+                                power_list
+                                    .insert(inverse.clone(), counter - Symbol::integer(1).expr());
+                            } else {
+                                power_list.insert(factor.clone(), Symbol::integer(1).expr());
                             }
                         }
                     }
-
-                    let factors: Vec<Expression> = power_list
-                        .iter()
-                        .filter(|&(_, exponent)| {
-                            exponent != &Number::new(0.0) && exponent != &Integer::new(0)
-                        })
-                        .map(|(base, exponent)| Power::new(base.clone(), exponent.clone()))
-                        .collect();
-
-                    alternatives.push(Multiplication::new(factors));
                 }
+
+                let factors: Vec<Expression> = power_list
+                    .iter()
+                    .filter(|&(_, exponent)| {
+                        exponent != &Symbol::integer(0).expr()
+                            && exponent != &Symbol::real(0.0).expr()
+                    })
+                    .map(|(base, exponent)| Expression::power(base.clone(), exponent.clone()))
+                    .collect();
+
+                alternatives.push(Expression::multiplication(factors));
             }
             _ => {}
         }
@@ -81,19 +74,18 @@ mod test {
 
     #[test]
     fn factors_symbols() {
-        use crate::symbols::variable::Variable;
-
-        let expression = Multiplication::new(vec![
-            Variable::new(String::from("a")),
-            Variable::new(String::from("a")),
-            Variable::new(String::from("a")),
-            Variable::new(String::from("b")),
+        let expression = Expression::multiplication(vec![
+            Symbol::variable("a").expr(),
+            Symbol::variable("a").expr(),
+            Symbol::variable("a").expr(),
+            Symbol::variable("b").expr(),
         ]);
 
-        let expected = Multiplication::new(vec![
-            Variable::new(String::from("a"))
-                .pow(&(Integer::new(1) + Integer::new(1) + Integer::new(1))),
-            Variable::new(String::from("b")),
+        let expected = Expression::multiplication(vec![
+            Symbol::variable("a").expr().pow(
+                Symbol::integer(1).expr() + Symbol::integer(1).expr() + Symbol::integer(1).expr(),
+            ),
+            Symbol::variable("b").expr(),
         ]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
@@ -105,16 +97,16 @@ mod test {
 
     #[test]
     fn factors_expressions() {
-        use crate::symbols::variable::Variable;
-        let n1 = &Integer::new(1);
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
+        let n1 = &Symbol::integer(1).expr();
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
 
-        let expression = Multiplication::new(vec![a * b, a * b, a * b, a.clone(), b.clone()]);
+        let expression =
+            Expression::multiplication(vec![a * b, a * b, a * b, a.clone(), b.clone()]);
 
-        let expected = Multiplication::new(vec![
-            a.pow(&(n1 + n1 + n1 + n1)),
-            b.pow(&(n1 + n1 + n1 + n1)),
+        let expected = Expression::multiplication(vec![
+            a.clone().pow(n1 + n1 + n1 + n1),
+            b.clone().pow(n1 + n1 + n1 + n1),
         ]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
@@ -126,15 +118,16 @@ mod test {
 
     #[test]
     fn subtracts_inverse() {
-        use crate::symbols::variable::Variable;
+        let n1 = &Symbol::integer(1).expr();
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
 
-        let n1 = &Integer::new(1);
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
+        let expression = Expression::multiplication(vec![a / b, a / b, a / b]);
 
-        let expression = Multiplication::new(vec![a / b, a / b, a / b]);
-
-        let expected = Multiplication::new(vec![a.pow(&(n1 + n1 + n1)), b.pow(&(-n1 - n1 - n1))]);
+        let expected = Expression::multiplication(vec![
+            a.clone().pow(n1 + n1 + n1),
+            b.clone().pow(-n1 - n1 - n1),
+        ]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
             .pop()
@@ -145,15 +138,14 @@ mod test {
 
     #[test]
     fn zero_power_wont_go_to_one() {
-        use crate::symbols::variable::Variable;
+        let n1 = &Symbol::integer(1).expr();
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
 
-        let n1 = &Integer::new(1);
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
+        let expression = Expression::multiplication(vec![a / b, b / a]);
 
-        let expression = Multiplication::new(vec![a / b, b / a]);
-
-        let expected = Multiplication::new(vec![a.pow(&(n1 - n1)), b.pow(&(n1 - n1))]);
+        let expected =
+            Expression::multiplication(vec![a.clone().pow(n1 - n1), b.clone().pow(n1 - n1)]);
 
         let factored = MultiplicativeCommonFactor::apply(&expression)
             .pop()

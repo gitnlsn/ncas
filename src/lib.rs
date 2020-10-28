@@ -1,6 +1,7 @@
 pub mod base {
     /* General recursive structure */
     pub mod expression;
+    mod expression_test;
 
     /* Minimal value representation - leaf nodes */
     pub mod symbol;
@@ -32,19 +33,19 @@ pub mod manipulation {
 //     pub mod pattern_matchable;
 //     pub mod simplifiable;
 //     mod simplifiable_test;
-//     pub mod simplification_rules {
-//         pub mod rule;
-//         pub mod identities {
-//             pub mod inverse_power_log;
-//             pub mod pitagorean_identity;
-//         }
-//         pub mod factoring {
-//             pub mod factorable;
-//             pub mod additive_common_addend;
-//             pub mod additive_common_factor;
-//             pub mod multiplicative_common_factor;
-//         }
-//     }
+    pub mod simplification_rules {
+        pub mod rule;
+        pub mod identities {
+            pub mod inverse_power_log;
+            // pub mod pitagorean_identity;
+        }
+        pub mod factoring {
+            // pub mod factorable;
+            pub mod additive_common_addend;
+            // pub mod additive_common_factor;
+            pub mod multiplicative_common_factor;
+        }
+    }
     pub mod expansion_rules {
         pub mod rule;
         pub mod multiplicative_distributive;
