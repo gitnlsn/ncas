@@ -1,106 +1,118 @@
 #[cfg(test)]
 mod multiplication_common_factors {
-    use crate::arithmetics::multiplication::Multiplication;
-    use crate::manipulation::simplifiable::Simplifiable;
-    use crate::symbols::{integer::Integer, number::Number, variable::Variable};
+    use crate::base::{expression::Expression, symbol::Symbol};
 
     #[test]
     fn keeps_sign_separated() {
-        let a = &Variable::new(String::from("a"));
+        let a = &Symbol::variable("a").expr();
         assert_eq!(
             (-a).simplify(),
-            Multiplication::new(vec![Integer::new(-1), Variable::new(String::from("a"))])
+            Expression::multiplication(vec![
+                Symbol::integer(-1).expr(),
+                Symbol::variable("a").expr()
+            ])
         );
-        assert_eq!((-(-a)).simplify(), Variable::new(String::from("a")));
+
+        assert_eq!((-(-a)).simplify(), Symbol::variable("a").expr());
+
         assert_eq!(
             (-(-(-a))).simplify(),
-            Multiplication::new(vec![Integer::new(-1), Variable::new(String::from("a"))])
+            Expression::multiplication(vec![
+                Symbol::integer(-1).expr(),
+                Symbol::variable("a").expr()
+            ])
         );
     }
 
     #[test]
     fn simplifies_opposite_factor() {
-        let minus_one = &Integer::new(-1);
-        assert_eq!((minus_one * minus_one).simplify(), Integer::new(1));
-
-        let a = &Variable::new(String::from("a"));
-        assert_eq!((-a * -a).simplify(), a.pow(&Integer::new(2)));
-        assert_eq!((-a * -a * -a).simplify(), -(a.pow(&Integer::new(3))));
+        let minus_one = &Symbol::integer(-1).expr();
+        let a = &Symbol::variable("a").expr();
 
         assert_eq!(
-            ((-a).pow(&Integer::new(2))).simplify(),
-            a.pow(&Integer::new(2))
+            (minus_one * minus_one).simplify(),
+            Symbol::integer(1).expr()
         );
+
         assert_eq!(
-            (-a.pow(&Number::new(3.0))).simplify(),
-            -(a.pow(&Number::new(3.0)))
+            (-a * -a).simplify(),
+            a.clone().pow(Symbol::integer(2).expr())
+        );
+
+        assert_eq!(
+            (-a * -a * -a).simplify(),
+            -(a.clone().pow(Symbol::integer(3).expr()))
+        );
+
+        assert_eq!(
+            ((-a).pow(Symbol::integer(2).expr())).simplify(),
+            a.clone().pow(Symbol::integer(2).expr())
+        );
+
+        assert_eq!(
+            (-a.clone().pow(Symbol::integer(3).expr())).simplify(),
+            -(a.clone().pow(Symbol::integer(3).expr()))
         );
     }
 
     #[test]
     fn simplifies_after_distribution() {
-        let a = &Variable::new(String::from("a"));
+        let a = &Symbol::variable("a").expr();
 
         let test = ((a + a) * (a + a)).simplify();
-        let expected = 4 * (a.pow(&Number::new(2.0)));
+        let expected = Symbol::integer(4).expr() * (a.clone().pow(Symbol::integer(2).expr()));
         assert_eq!(test, expected);
     }
 }
 
-// #[cfg(test)]
-// mod addition_common_addends {
-//     use crate::manipulation::simplifiable::Simplifiable;
-//     use crate::symbols::{number::Number, variable::Variable};
+#[cfg(test)]
+mod addition_common_addends {
+    use crate::base::symbol::Symbol;
 
-//     #[test]
-//     fn accumulates_numbers_in_addition() {
-//         /*
-//             case: 1 + 1 = 2
-//                 - merges numbers inside Addition CommutativeAssociation
-//         */
-//         assert_eq!(
-//             (Number::new(1.0) + Number::new(1.0)).simplify(),
-//             Number::new(2.0)
-//         );
-//     }
+    #[test]
+    fn separates_sign_at_multiplication() {
+        let a = &Symbol::variable("a").expr();
+        let one = &Symbol::integer(1).expr();
+        let two = &Symbol::integer(2).expr();
+        assert_eq!((-a - a).simplify(), -one * two * a);
+    }
 
-//     #[test]
-//     fn separates_sign_at_multiplication() {
-//         let a = &Variable::new(String::from("a"));
-//         assert_eq!((-a - a).simplify(), -1 * 2 * a);
-//     }
+    #[test]
+    fn simplifies_opposite_sum() {
+        let a = &Symbol::variable("a").expr();
+        assert_eq!((a - a).simplify(), Symbol::integer(0).expr());
 
-//     #[test]
-//     fn simplifies_opposite_sum() {
-//         let a = &Variable::new(String::from("a"));
-//         assert_eq!((a - a).simplify(), Number::new(0.0));
+        let n1 = &Symbol::integer(1).expr();
+        assert_eq!((n1 - n1).simplify(), Symbol::integer(0).expr());
+    }
+}
 
-//         let n1 = &Number::new(1.0);
-//         assert_eq!((n1 - n1).simplify(), Number::new(0.0));
-//     }
-// }
+#[cfg(test)]
+mod power_log {
+    use crate::base::{expression::Expression, symbol::Symbol};
 
-// #[cfg(test)]
-// mod power_log {
-//     use crate::exponential::{logarithm::Log, power::Power};
-//     use crate::manipulation::simplifiable::Simplifiable;
-//     use crate::symbols::{number::Number, variable::Variable};
+    #[test]
+    fn simplifies_through_power_log() {
+        let a = &Symbol::variable("a").expr();
+        let one = &Symbol::integer(1).expr();
+        let two = &Symbol::integer(2).expr();
+        let four = &Symbol::integer(4).expr();
 
-//     #[test]
-//     fn simplifies_through_power_log() {
-//         let a = &Variable::new(String::from("a"));
+        let test = Expression::power(a + one, Expression::logarithm(a + a, a + one)).simplify();
+        let expected = two * a;
+        assert_eq!(test, expected);
 
-//         let test = Power::new(a + 1, Log::new(a + a, a + 1)).simplify();
-//         let expected = 2 * a;
-//         assert_eq!(test, expected);
+        let test = Expression::power(a + one, Expression::logarithm((a + a) * (a + a), a + one))
+            .simplify();
+        let expected = four * (a.clone().pow(two.clone()));
+        assert_eq!(test, expected);
 
-//         let test = Power::new(a + 1, Log::new((a + a) * (a + a), a + 1)).simplify();
-//         let expected = 4 * (a.pow(&Number::new(2.0)));
-//         assert_eq!(test, expected);
-
-//         let test =
-//             Power::new(a + 1, Log::new(Power::new((a + a) * (a + a), a + a), a + 1)).simplify();
-//         let expected = Power::new(4.0 * (a.pow(&(Number::new(2.0)))), 2 * a);
-//         assert_eq!(test, expected);
-//     }
-// }
+        let test = Expression::power(
+            a + one,
+            Expression::logarithm(Expression::power((a + a) * (a + a), a + a), a + one),
+        )
+        .simplify();
+        let expected = Expression::power(four * (a.clone().pow(two.clone())), two * a);
+        assert_eq!(test, expected);
+    }
+}

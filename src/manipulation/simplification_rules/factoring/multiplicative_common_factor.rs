@@ -6,9 +6,7 @@ use std::collections::HashMap;
 
 pub struct MultiplicativeCommonFactor {}
 impl Rule for MultiplicativeCommonFactor {
-    fn apply(expression: &Expression) -> Vec<Expression> {
-        let mut alternatives: Vec<Expression> = Vec::new();
-
+    fn apply(expression: &Expression) -> Expression {
         match expression {
             Expression::Multiplication(factors) => {
                 let mut power_list: HashMap<Expression, Expression> = HashMap::new();
@@ -55,21 +53,17 @@ impl Rule for MultiplicativeCommonFactor {
                     .map(|(base, exponent)| Expression::power(base.clone(), exponent.clone()))
                     .collect();
 
-                alternatives.push(Expression::multiplication(factors));
+                return Expression::multiplication(factors);
             }
             _ => {}
         }
 
-        if alternatives.is_empty() {
-            return vec![expression.clone()];
-        }
-
-        return alternatives;
+        return expression.clone();
     } /* end - apply */
 }
 
 #[cfg(test)]
-mod test {
+mod simplify {
     use super::*;
 
     #[test]
@@ -88,9 +82,7 @@ mod test {
             Symbol::variable("b").expr(),
         ]);
 
-        let factored = MultiplicativeCommonFactor::apply(&expression)
-            .pop()
-            .unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression);
 
         assert_eq!(factored, expected);
     }
@@ -109,9 +101,7 @@ mod test {
             b.clone().pow(n1 + n1 + n1 + n1),
         ]);
 
-        let factored = MultiplicativeCommonFactor::apply(&expression)
-            .pop()
-            .unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression);
 
         assert_eq!(factored, expected);
     }
@@ -129,27 +119,21 @@ mod test {
             b.clone().pow(-n1 - n1 - n1),
         ]);
 
-        let factored = MultiplicativeCommonFactor::apply(&expression)
-            .pop()
-            .unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression);
 
         assert_eq!(factored, expected);
     }
 
     #[test]
-    fn zero_power_wont_go_to_one() {
-        let n1 = &Symbol::integer(1).expr();
+    fn nullifies_inverse() {
         let a = &Symbol::variable("a").expr();
         let b = &Symbol::variable("b").expr();
 
         let expression = Expression::multiplication(vec![a / b, b / a]);
 
-        let expected =
-            Expression::multiplication(vec![a.clone().pow(n1 - n1), b.clone().pow(n1 - n1)]);
+        let expected = Symbol::integer(1).expr();
 
-        let factored = MultiplicativeCommonFactor::apply(&expression)
-            .pop()
-            .unwrap();
+        let factored = MultiplicativeCommonFactor::apply(&expression);
 
         assert_eq!(factored, expected);
     }

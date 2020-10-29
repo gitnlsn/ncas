@@ -65,7 +65,7 @@ impl Expression {
                                 None => false,
                             };
 
-                        if !odd_exponent && is_negative {
+                        if odd_exponent && is_negative {
                             factor_vec.push(Symbol::integer(-1).expr());
                         }
 

@@ -4,9 +4,7 @@ use crate::manipulation::simplification_rules::rule::Rule;
 
 pub struct InversePowerLog {}
 impl Rule for InversePowerLog {
-    fn apply(expression: &Expression) -> Vec<Expression> {
-        let mut alternatives: Vec<Expression> = Vec::new();
-
+    fn apply(expression: &Expression) -> Expression {
         match expression {
             Expression::Power(power) => {
                 /* Outer operator is Power */
@@ -17,7 +15,7 @@ impl Rule for InversePowerLog {
                         let logarithmic_base: Expression = log.modifier();
                         if exponential_base == logarithmic_base {
                             let logarithmic_argument: Expression = log.argument();
-                            alternatives.push(logarithmic_argument.clone());
+                            return logarithmic_argument.clone();
                         }
                     }
                     _ => {}
@@ -32,7 +30,7 @@ impl Rule for InversePowerLog {
                         let exponential_base: Expression = power.argument();
                         if exponential_base == logarithmic_base {
                             let exponential_exponent: Expression = power.modifier();
-                            alternatives.push(exponential_exponent.clone());
+                            return exponential_exponent.clone();
                         }
                     }
                     _ => {}
@@ -41,11 +39,7 @@ impl Rule for InversePowerLog {
             _ => {}
         };
 
-        if alternatives.is_empty() {
-            return vec![expression.clone()];
-        }
-
-        return alternatives;
+        return expression.clone();
     }
 }
 
@@ -65,7 +59,7 @@ mod test {
 
         let expected = Symbol::variable("x").expr();
 
-        let factored = InversePowerLog::apply(&expression).pop().unwrap();
+        let factored = InversePowerLog::apply(&expression);
 
         assert_eq!(factored, expected);
     }
@@ -81,7 +75,7 @@ mod test {
 
         let expected = Symbol::variable("x").expr();
 
-        let factored = InversePowerLog::apply(&expression).pop().unwrap();
+        let factored = InversePowerLog::apply(&expression);
 
         assert_eq!(factored, expected);
     }

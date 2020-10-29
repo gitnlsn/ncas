@@ -6,9 +6,7 @@ use std::collections::HashMap;
 
 pub struct AdditiveCommonAddend {}
 impl Rule for AdditiveCommonAddend {
-    fn apply(expression: &Expression) -> Vec<Expression> {
-        let mut alternatives: Vec<Expression> = Vec::new();
-
+    fn apply(expression: &Expression) -> Expression {
         match expression {
             Expression::Addition(addends) => {
                 let mut addend_count_list: HashMap<Expression, isize> = HashMap::new();
@@ -31,21 +29,17 @@ impl Rule for AdditiveCommonAddend {
                     .map(|(expression, counter)| Symbol::integer(*counter).expr() * expression)
                     .collect();
 
-                alternatives.push(Expression::addition(addends));
+                return Expression::addition(addends);
             }
             _ => {}
         }
 
-        if alternatives.is_empty() {
-            return vec![expression.clone()];
-        }
-
-        return alternatives;
+        return expression.clone();
     }
 }
 
 #[cfg(test)]
-mod test {
+mod simplify {
     use super::*;
 
     #[test]
@@ -62,7 +56,7 @@ mod test {
             Symbol::variable("b").expr(),
         ]);
 
-        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression);
 
         assert_eq!(factored, expected);
     }
@@ -83,7 +77,7 @@ mod test {
             Symbol::variable("a").expr(),
         ]);
 
-        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression);
 
         assert_eq!(factored, expected);
     }
@@ -101,7 +95,21 @@ mod test {
             Symbol::integer(2).expr() * Symbol::variable("a").expr() * Symbol::variable("b").expr(),
         ]);
 
-        let factored = AdditiveCommonAddend::apply(&expression).pop().unwrap();
+        let factored = AdditiveCommonAddend::apply(&expression);
+
+        assert_eq!(factored, expected);
+    }
+
+    #[test]
+    fn nullifies_opposite() {
+        let expression = Expression::addition(vec![
+            -Symbol::variable("a").expr() * Symbol::variable("b").expr(),
+            Symbol::variable("a").expr() * Symbol::variable("b").expr(),
+        ]);
+
+        let expected = Symbol::integer(0).expr();
+
+        let factored = AdditiveCommonAddend::apply(&expression);
 
         assert_eq!(factored, expected);
     }

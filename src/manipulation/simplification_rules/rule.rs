@@ -7,5 +7,5 @@ use crate::base::expression::Expression;
  *      - it won't search further than 1 Expression Node deep
  */
 pub trait Rule {
-    fn apply(expression: &Expression) -> Vec<Expression>;
+    fn apply(expression: &Expression) -> Expression;
 }

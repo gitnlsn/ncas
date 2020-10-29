@@ -31,8 +31,8 @@ pub mod manipulation {
     pub mod ordeable;
 //     mod ordeable_test;
 //     pub mod pattern_matchable;
-//     pub mod simplifiable;
-//     mod simplifiable_test;
+    pub mod simplifiable;
+    mod simplifiable_test;
     pub mod simplification_rules {
         pub mod rule;
         pub mod identities {

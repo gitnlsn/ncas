@@ -61,9 +61,11 @@ impl Rule for PowerDistributive {
                         _ => false,
                     });
 
-                    let other_factors = factors
+                    let other_factors: Vec<Expression> = factors
                         .get(&|factor| match factor {
                             Expression::Addition(_) => false,
+                            Expression::Integer(_) => false,
+                            Expression::Real(_) => false,
                             _ => true,
                         })
                         .iter()
