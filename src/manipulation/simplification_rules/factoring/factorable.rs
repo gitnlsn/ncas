@@ -1,5 +1,4 @@
-use crate::base::expression::Expression;
-use crate::manipulation::identifiable::Identity;
+use crate::base::{expression::Expression, symbol::Symbol};
 
 use std::collections::HashMap;
 
@@ -22,33 +21,19 @@ impl FactorDecomposition {
         let mut factors: HashMap<Expression, usize> = HashMap::new();
 
         match &expression {
-            Expression::CommutativeAssociation(association) => match association.id() {
-                Identity::Multiplication => {
-                    association.items().iter().cloned().for_each(|factor| {
-                        factors.insert(factor, 1);
-                    });
-                    return FactorDecomposition { factors: factors };
-                }
-                _ => {}
-            },
-            Expression::AssociativeOperation(operation) => match operation.id() {
-                Identity::Power => {
-                    let exponent = operation.modifier().as_ref();
-                    match exponent {
-                        Expression::Symbol(s) => match s.id() {
-                            Identity::Number => {
-                                let value = s.value().unwrap();
-                                if value > 0.0 && (value as usize) as f64 == value {
-                                    factors.insert(
-                                        operation.argument().as_ref().clone(),
-                                        value as usize,
-                                    );
-                                    return FactorDecomposition { factors: factors };
-                                }
-                            }
-                            _ => {}
-                        },
-                        _ => {}
+            Expression::Multiplication(factor_list) => {
+                factor_list.items().iter().cloned().for_each(|factor| {
+                    factors.insert(factor, 1);
+                });
+                return FactorDecomposition { factors: factors };
+            }
+            Expression::Power(power) => match power.modifier() {
+                Expression::Integer(n) => {
+                    let value = n.value().unwrap();
+                    if value > 0 {
+                        factors.insert(power.argument(), value as usize);
+                    } else {
+                        factors.insert(power.argument(), (value * -1) as usize);
                     }
                 }
                 _ => {}
@@ -61,11 +46,12 @@ impl FactorDecomposition {
     }
 
     pub fn as_expression(self) -> Expression {
-        use crate::arithmetics::multiplication::Multiplication;
-        return Multiplication::new(
+        return Expression::multiplication(
             self.factors
                 .iter()
-                .map(|(factor, multiplicity)| factor * (*multiplicity as isize))
+                .map(|(factor, multiplicity)| {
+                    factor * Symbol::integer(*multiplicity as isize).expr()
+                })
                 .collect(),
         );
     }
@@ -124,38 +110,20 @@ impl std::ops::Div for FactorDecomposition {
                     );
                 } else {
                     factor_list.insert(
-                        1 / factor,
+                        Symbol::integer(1).expr() / factor,
                         other_factor_multiplicity - self_factor_multiplicity,
                     );
                 }
             }
-            factor_list.insert(1 / factor, *other_factor_multiplicity);
+            factor_list.insert(
+                Symbol::integer(1).expr() / factor,
+                *other_factor_multiplicity,
+            );
         }
 
         return FactorDecomposition {
             factors: factor_list,
         };
-    }
-}
-
-impl std::ops::Div<&FactorDecomposition> for FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn div(self, other: &FactorDecomposition) -> FactorDecomposition {
-        self / other.clone()
-    }
-}
-
-impl std::ops::Div<FactorDecomposition> for &FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn div(self, other: FactorDecomposition) -> FactorDecomposition {
-        self.clone() / other
-    }
-}
-
-impl std::ops::Div<&FactorDecomposition> for &FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn div(self, other: &FactorDecomposition) -> FactorDecomposition {
-        self.clone() / other.clone()
     }
 }
 
@@ -177,27 +145,6 @@ impl std::ops::Mul for FactorDecomposition {
         return FactorDecomposition {
             factors: new_factors,
         };
-    }
-}
-
-impl std::ops::Mul<&FactorDecomposition> for FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn mul(self, other: &FactorDecomposition) -> FactorDecomposition {
-        self * other.clone()
-    }
-}
-
-impl std::ops::Mul<FactorDecomposition> for &FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn mul(self, other: FactorDecomposition) -> FactorDecomposition {
-        self.clone() * other
-    }
-}
-
-impl std::ops::Mul<&FactorDecomposition> for &FactorDecomposition {
-    type Output = FactorDecomposition;
-    fn mul(self, other: &FactorDecomposition) -> FactorDecomposition {
-        self.clone() * other.clone()
     }
 }
 
@@ -242,13 +189,13 @@ impl Factorable for Expression {
 #[cfg(test)]
 mod lossless_convertion_to_expression {
     use super::*;
-    use crate::symbols::{number::Number, variable::Variable};
+    use crate::base::symbol::Symbol;
 
     #[test]
     fn sample_1() {
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
-        let c = &Variable::new(String::from("c"));
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
 
         let trial = a * b * c;
         let test = FactorDecomposition::from_expression(trial.clone()).as_expression();
@@ -258,11 +205,12 @@ mod lossless_convertion_to_expression {
 
     #[test]
     fn sample_2() {
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
-        let c = &Variable::new(String::from("c"));
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
+        let three = &Symbol::real(3.0).expr();
 
-        let trial = a * b.pow(&c) * c.pow(&Number::new(3.0));
+        let trial = a * b.clone().pow(c.clone()) * c.clone().pow(three.clone());
         let test = FactorDecomposition::from_expression(trial.clone()).as_expression();
 
         assert_eq!(trial, test);
@@ -271,15 +219,13 @@ mod lossless_convertion_to_expression {
 
 #[cfg(test)]
 mod divisibility {
-
     use super::*;
-    use crate::symbols::{number::Number, variable::Variable};
 
     #[test]
     fn sample_1() {
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
-        let c = &Variable::new(String::from("c"));
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
 
         let dividend = FactorDecomposition::from_expression(a * b * c);
         let divisor = FactorDecomposition::from_expression(a * b);
@@ -289,12 +235,13 @@ mod divisibility {
 
     #[test]
     fn sample_2() {
-        let a = &Variable::new(String::from("a"));
-        let b = &Variable::new(String::from("b"));
-        let c = &Variable::new(String::from("c"));
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+        let c = &Symbol::variable("c").expr();
+        let one = &Symbol::integer(1).expr();
 
-        let dividend = FactorDecomposition::from_expression((a + b).pow(&(c + 1)));
-        let divisor = FactorDecomposition::from_expression((a + b).pow(&(c)));
+        let dividend = FactorDecomposition::from_expression((a + b).pow(c + one));
+        let divisor = FactorDecomposition::from_expression((a + b).pow(c.clone()));
 
         assert!(divisor.divides(&dividend));
     }
