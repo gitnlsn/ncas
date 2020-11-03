@@ -10,17 +10,55 @@ impl Rule for AdditiveCommonAddend {
         match expression {
             Expression::Addition(addends) => {
                 let mut addend_count_list: HashMap<Expression, isize> = HashMap::new();
-                for addend in addends.items().iter() {
+
+                fn update_addend_list(
+                    mapping: &mut HashMap<Expression, isize>,
+                    addend: &Expression,
+                    counter: isize,
+                ) {
                     let opposite = &-addend;
 
-                    if addend_count_list.contains_key(addend) {
-                        let counter = addend_count_list.remove(addend).unwrap();
-                        addend_count_list.insert(addend.clone(), counter + 1);
-                    } else if addend_count_list.contains_key(opposite) {
-                        let counter = addend_count_list.remove(opposite).unwrap();
-                        addend_count_list.insert(opposite.clone(), counter - 1);
+                    if mapping.contains_key(addend) {
+                        let current_counter = mapping.remove(addend).unwrap();
+                        mapping.insert(addend.clone(), current_counter + counter);
+                    } else if mapping.contains_key(opposite) {
+                        let current_counter = mapping.remove(opposite).unwrap();
+                        mapping.insert(opposite.clone(), current_counter - counter);
                     } else {
-                        addend_count_list.insert(addend.clone(), 1);
+                        mapping.insert(addend.clone(), counter);
+                    }
+                }
+
+                for addend in addends.items().iter() {
+                    match addend {
+                        Expression::Multiplication(factors) => {
+                            match factors.get_one(&|factor| match factor {
+                                Expression::Integer(_) => true,
+                                _ => false,
+                            }) {
+                                /* Integer factor in multiplication */
+                                Some(Expression::Integer(integer)) => {
+                                    let remaining_factors = factors.get(&|factor| match factor {
+                                        Expression::Integer(_) => false,
+                                        _ => true,
+                                    });
+                                    update_addend_list(
+                                        &mut addend_count_list,
+                                        &Expression::multiplication(remaining_factors),
+                                        integer.value().unwrap(),
+                                    );
+                                }
+
+                                /* No Integer factor in multiplication */
+                                _ => {
+                                    update_addend_list(&mut addend_count_list, addend, 1);
+                                }
+                            };
+                        }
+                        /* Not multiplication */
+                        _ => {
+                            update_addend_list(&mut addend_count_list, addend, 1);
+                        }
                     }
                 }
                 let addends: Vec<Expression> = addend_count_list
@@ -76,6 +114,23 @@ mod simplify {
             Symbol::variable("b").expr(),
             Symbol::variable("a").expr(),
         ]);
+
+        let factored = AdditiveCommonAddend::apply(&expression);
+
+        assert_eq!(factored, expected);
+    }
+
+    #[test]
+    fn simplifies_integer_multiplied_addends() {
+        let expression = Expression::addition(vec![
+            Symbol::integer(2).expr() * Symbol::variable("a").expr() * Symbol::variable("b").expr(),
+            Symbol::integer(-2).expr()
+                * Symbol::variable("a").expr()
+                * Symbol::variable("b").expr(),
+            Symbol::variable("b").expr(),
+        ]);
+
+        let expected = Expression::addition(vec![Symbol::variable("b").expr()]);
 
         let factored = AdditiveCommonAddend::apply(&expression);
 

@@ -1,10 +1,9 @@
-/*
-    TODO:
-        - this is a temporary definition
-        - Implement a proper expression comparison, considering simplification
-        - assert_eq!(Number::new(1) + Number::new(1), Number::new(2)) fails
-*/
 use crate::base::expression::Expression;
+/*
+    Canonical Equality implementation
+        - compares each expression nodes for equality
+        - `Symbol::integer(2).expr() == Symbol::integer(1).expr() + Symbol::integer(1).expr()` fails
+*/
 impl Eq for Expression {}
 impl PartialEq for Expression {
     fn eq(&self, other: &Self) -> bool {

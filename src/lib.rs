@@ -26,7 +26,9 @@ pub mod manipulation {
 //     pub mod differentiate;
     pub mod expand;
     mod expand_test;
-    pub mod expression_equality; /* TODO (Equality): implement normal form comparison instead of canonical form comparison */
+    pub mod expression_equality;
+    pub mod expression_comparison;
+    pub mod expression_comparison_test;
 //     pub mod numeric_evaluation;
     pub mod ordeable;
 //     mod ordeable_test;
@@ -54,8 +56,6 @@ pub mod manipulation {
         mod power_distributive_test;
     }
 //     // pub mod replaceable;
-//     // pub mod simplifiable;
-//     // pub mod sortable;
 }
 
 pub mod arithmetics {
@@ -65,7 +65,6 @@ pub mod arithmetics {
     mod division_test;
     pub mod multiplication;
     mod multiplication_test;
-//     mod precedence_test; /* todo: remove */
 //     pub mod primitives_interface;
 //     mod primitives_interface_test;
     pub mod subtraction;
