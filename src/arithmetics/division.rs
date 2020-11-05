@@ -6,7 +6,7 @@ impl Expression {
             Expression::Integer(integer_divisor) => {
                 /* Avoid unnecessary power structures */
                 if integer_divisor == &Symbol::integer(1) {
-                    return divisor;
+                    return dividend;
                 }
                 if integer_divisor == &Symbol::integer(-1) {
                     return Expression::multiplication(vec![dividend, Symbol::integer(-1).expr()]);

@@ -47,6 +47,11 @@ pub mod manipulation {
             // pub mod additive_common_factor;
             pub mod multiplicative_common_factor;
         }
+        pub mod rational {
+            pub mod rationals;
+            pub mod rationals_addition;
+            pub mod rationals_multiplication;
+        }
     }
     pub mod expansion_rules {
         pub mod rule;

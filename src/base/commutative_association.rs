@@ -106,6 +106,56 @@ impl CommutativeAssociation {
     }
 
     /**
+     * Get integer divided by another integer
+     */
+    pub fn get_rationals(&self) -> Vec<Expression> {
+        self.items()
+            .iter()
+            .cloned()
+            .filter(|factor| match factor {
+                Expression::Integer(_) => true,
+                Expression::Power(power) => match (power.argument(), power.modifier()) {
+                    (Expression::Integer(_), Expression::Integer(_)) => true,
+                    _ => false,
+                },
+                Expression::Multiplication(factors) => {
+                    let possible_numerator: Vec<Expression> = factors.get_rational_numerators();
+                    let possible_denominator: Vec<Expression> = factors.get_rational_denominators();
+
+                    return factors.items().len()
+                        == possible_numerator.len() + possible_denominator.len();
+                }
+                _ => false,
+            })
+            .collect()
+    }
+
+    /**
+     * Get all non rational, non integer, non inverted integer
+     */
+    pub fn get_non_rationals(&self) -> Vec<Expression> {
+        self.items()
+            .iter()
+            .cloned()
+            .filter(|factor| match factor {
+                Expression::Integer(_) => false,
+                Expression::Power(power) => match (power.argument(), power.modifier()) {
+                    (Expression::Integer(_), Expression::Integer(_)) => false,
+                    _ => true,
+                },
+                Expression::Multiplication(factors) => {
+                    let possible_numerator: Vec<Expression> = factors.get_rational_numerators();
+                    let possible_denominator: Vec<Expression> = factors.get_rational_denominators();
+
+                    return factors.items().len()
+                        != possible_numerator.len() + possible_denominator.len();
+                }
+                _ => true,
+            })
+            .collect()
+    }
+
+    /**
      * Get integer denominators
      *  - addition may have serveral fractional parts
      */
@@ -192,6 +242,58 @@ mod getters {
         assert!(items
             .get_rational_denominators()
             .contains(&Symbol::integer(5).expr()));
+    }
+
+    #[test]
+    fn rationals() {
+        let items = CommutativeAssociation::new(vec![
+            Symbol::integer(1).expr(),
+            Symbol::variable("a").expr(),
+            Symbol::integer(1).expr() / Symbol::integer(7).expr(),
+            Symbol::integer(2).expr() / Symbol::integer(7).expr(),
+            Symbol::integer(3).expr() / Symbol::integer(7).expr(),
+            (Symbol::integer(3).expr() / Symbol::integer(7).expr()) / Symbol::integer(7).expr(),
+        ]);
+
+        assert_eq!(items.get_rationals().len(), 5);
+        assert!(items.get_rationals().contains(&(Symbol::integer(1).expr())));
+        assert!(items
+            .get_rationals()
+            .contains(&(Symbol::integer(1).expr() / Symbol::integer(7).expr())));
+        assert!(items
+            .get_rationals()
+            .contains(&(Symbol::integer(2).expr() / Symbol::integer(7).expr())));
+        assert!(items
+            .get_rationals()
+            .contains(&(Symbol::integer(3).expr() / Symbol::integer(7).expr())));
+        assert!(items.get_rationals().contains(
+            &((Symbol::integer(3).expr() / Symbol::integer(7).expr()) / Symbol::integer(7).expr())
+        ));
+
+        assert_eq!(items.get_non_rationals().len(), 1);
+        assert!(items
+            .get_non_rationals()
+            .contains(&Symbol::variable("a").expr()));
+    }
+
+    #[test]
+    fn non_rationals() {
+        let items = CommutativeAssociation::new(vec![
+            Symbol::integer(1).expr(),
+            Symbol::variable("a").expr(),
+            Symbol::integer(5).expr() / Symbol::integer(7).expr(),
+            Symbol::variable("a").expr() / Symbol::integer(7).expr(),
+            Symbol::integer(3).expr() / Symbol::integer(7).expr(),
+            (Symbol::integer(3).expr() / Symbol::integer(7).expr()) / Symbol::integer(7).expr(),
+        ]);
+
+        assert_eq!(items.get_non_rationals().len(), 2);
+        assert!(items
+            .get_non_rationals()
+            .contains(&Symbol::variable("a").expr()));
+        assert!(items
+            .get_non_rationals()
+            .contains(&(Symbol::variable("a").expr() / Symbol::integer(7).expr())));
     }
 
     #[test]

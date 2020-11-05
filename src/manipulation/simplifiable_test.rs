@@ -116,3 +116,20 @@ mod power_log {
         assert_eq!(test, expected);
     }
 }
+
+#[cfg(test)]
+mod rationals {
+    use crate::base::symbol::Symbol;
+
+    #[test]
+    fn simplifies_integer_rationals() {
+        let quarter = &(Symbol::integer(1).expr() / Symbol::integer(4).expr());
+        let third = &(Symbol::integer(1).expr() / Symbol::integer(3).expr());
+        let twelvth = &(Symbol::integer(7).expr() / Symbol::integer(12).expr());
+
+        let trial = quarter + third;
+        let expected = twelvth.clone();
+
+        assert_eq!(trial.simplify(), expected);
+    }
+}

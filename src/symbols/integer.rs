@@ -221,6 +221,11 @@ impl Symbol<BigInt> {
             data: num::integer::gcd(x.data.clone(), y.data.clone()),
         }
     }
+    pub fn lcm(x: &Self, y: &Self) -> Self {
+        Self {
+            data: num::integer::lcm(x.data.clone(), y.data.clone()),
+        }
+    }
 
     pub fn is_negative(&self) -> bool {
         use num::bigint::Sign;
