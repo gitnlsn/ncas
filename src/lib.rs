@@ -46,6 +46,7 @@ pub mod manipulation {
             pub mod additive_common_addend;
             // pub mod additive_common_factor;
             pub mod multiplicative_common_factor;
+            pub mod single_algebraic_denominator;
         }
         pub mod rational {
             pub mod rationals;

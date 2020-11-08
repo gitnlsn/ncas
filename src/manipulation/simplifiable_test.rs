@@ -63,6 +63,28 @@ mod multiplication_common_factors {
         let expected = Symbol::integer(4).expr() * (a.clone().pow(Symbol::integer(2).expr()));
         assert_eq!(test, expected);
     }
+
+    #[test]
+    fn simplifies_division() {
+        let two = &Symbol::integer(2).expr();
+        let a = &Symbol::variable("a").expr();
+
+        let test = ((a + a) / (a.clone()).pow(two.clone())).simplify();
+        let expected = Symbol::integer(2).expr() / a;
+        assert_eq!(test, expected);
+    }
+
+    #[test]
+    fn simplifies_division_2() {
+        let two = &Symbol::integer(2).expr();
+        let a = &Symbol::variable("a").expr();
+        let b = &Symbol::variable("b").expr();
+
+        let test = (((a + a) * b) / (a * b).pow(two.clone())).simplify();
+        let expected = Symbol::integer(2).expr() / (a * b);
+        println!("{}\n{}",test, expected);
+        assert_eq!(test, expected);
+    }
 }
 
 #[cfg(test)]
@@ -118,18 +140,22 @@ mod power_log {
 }
 
 #[cfg(test)]
-mod rationals {
+mod integer_rational {
     use crate::base::symbol::Symbol;
 
     #[test]
     fn simplifies_integer_rationals() {
         let quarter = &(Symbol::integer(1).expr() / Symbol::integer(4).expr());
         let third = &(Symbol::integer(1).expr() / Symbol::integer(3).expr());
-        let twelvth = &(Symbol::integer(7).expr() / Symbol::integer(12).expr());
+        let seven_twelvth = &(Symbol::integer(7).expr() / Symbol::integer(12).expr());
+        let twelvth = &(Symbol::integer(1).expr() / Symbol::integer(12).expr());
 
         let trial = quarter + third;
-        let expected = twelvth.clone();
+        let expected = seven_twelvth.clone();
+        assert_eq!(trial.simplify(), expected);
 
+        let trial = third - quarter;
+        let expected = twelvth.clone();
         assert_eq!(trial.simplify(), expected);
     }
 }

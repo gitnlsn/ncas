@@ -54,7 +54,7 @@ impl Expression {
 
                         /* Sign */
                         let odd_exponent: bool =
-                            integer_exponent.value().unwrap() as isize % 2 == 1;
+                            integer_exponent.value().unwrap() % 2 == 1;
 
                         let is_negative: bool =
                             match base_factors.items().iter().find(|factor| match factor {
