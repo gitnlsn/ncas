@@ -27,17 +27,4 @@ mod rule_testing {
 
         assert_eq!(PowerDistributive::apply(&expandable), result);
     }
-
-    #[test]
-    fn sample_3() {
-        let a = &Symbol::variable("a").expr();
-        let b = &Symbol::variable("b").expr();
-        let c = &Symbol::variable("c").expr();
-        let two = &Symbol::integer(2).expr();
-
-        let expandable = ((a + b) * c).pow(two.clone());
-        let result = (a * a + a * b + a * b + b * b) * c.clone().pow(two.clone());
-
-        assert_eq!(PowerDistributive::apply(&expandable), result);
-    }
 }

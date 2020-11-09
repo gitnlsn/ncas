@@ -8,36 +8,64 @@ impl Expression {
      *  - keeps signal separated
      */
     pub fn power(base: Expression, exponent: Expression) -> Expression {
+        match &exponent {
+            Expression::Integer(integer_exponent) => {
+                /* Identity (power 1 exponent) */
+                if integer_exponent == &Symbol::integer(1) {
+                    return base;
+                }
+                /* Identity (power 0 exponent) */
+                if integer_exponent == &Symbol::integer(0) {
+                    return Symbol::integer(1).expr();
+                }
+            }
+            Expression::Real(real_exponent) => {
+                /* Identity (power 1.0 exponent) */
+                if real_exponent == &Symbol::real(1.0) {
+                    return base;
+                }
+                /* Identity (power 0.0 exponent) */
+                if real_exponent == &Symbol::real(0.0) {
+                    return Symbol::integer(1).expr();
+                }
+            }
+            _ => {}
+        }
+
         match &base {
+            // Identity (power to power):  (a ^ b) ^ c == a ^ (b * c)
             Expression::Power(power) => {
-                // power of power: (a^b)^c == a^(b*c)
-                //  - solves inverse of inverse
                 return Expression::power(
                     power.argument(),
                     Expression::multiplication(vec![power.modifier(), exponent]),
                 );
             }
-            _ => { /* nothing to do */ }
+            // Distributive: (a * b) ^ c == a ^ c * b ^ c
+            Expression::Multiplication(base_factors) => {
+                return Expression::multiplication(
+                    base_factors.map(&|factor| Expression::power(factor.clone(), exponent.clone())),
+                );
+            }
+            _ => {}
         }
 
         match &exponent {
+            /* Logarithm inverse operation */
             Expression::Logarithm(log) => {
                 if base == log.modifier() {
                     return log.argument();
                 }
             }
-            Expression::Integer(integer_exponent) => {
-                if integer_exponent == &Symbol::integer(1) {
-                    return base;
-                }
-                if integer_exponent == &Symbol::integer(0) {
-                    return Symbol::integer(1).expr();
-                }
+            _ => {}
+        }
 
-                match &base {
-                    Expression::Integer(integer_base) => {
+        match &base {
+            Expression::Integer(integer_base) => {
+                match &exponent {
+                    /* Simplification (Integer to Integer) */
+                    Expression::Integer(integer_exponent) => {
                         if integer_exponent.is_negative() {
-                            /* denominator rational */
+                            /* Rational Denominator */
                             return Expression::Power(AssociativeOperation::new(
                                 integer_base
                                     .pow(&integer_exponent.opposite())
@@ -49,124 +77,107 @@ impl Expression {
                             return integer_base.pow(integer_exponent).unwrap().expr();
                         }
                     }
-                    Expression::Multiplication(base_factors) => {
-                        let mut factor_vec: Vec<Expression> = Vec::new();
-
-                        /* Sign */
-                        let odd_exponent: bool =
-                            integer_exponent.value().unwrap() % 2 == 1;
-
-                        let is_negative: bool =
-                            match base_factors.items().iter().find(|factor| match factor {
-                                Expression::Integer(n) => n == &Symbol::integer(-1),
+                    /* Simplification (Integer to Real) */
+                    Expression::Real(real_exponent) => {
+                        let base_value: f64 = integer_base.value().unwrap() as f64;
+                        let exp_value: f64 = real_exponent.value().unwrap();
+                        return Symbol::real(base_value.powf(exp_value)).expr();
+                    }
+                    /* Simplification (Integer to multiplication with Integer or Real) */
+                    Expression::Multiplication(exponent_factors) => {
+                        if let Some(real_exponent_factor) =
+                            exponent_factors.get_one(&|factor| match factor {
+                                Expression::Real(_) => true,
                                 _ => false,
-                            }) {
-                                Some(_) => true,
-                                None => false,
-                            };
-
-                        if odd_exponent && is_negative {
-                            factor_vec.push(Symbol::integer(-1).expr());
-                        }
-
-                        /* integer */
-                        let possible_integer_factor: Option<Expression> =
-                            base_factors.get_one(&|factor| match factor {
-                                Expression::Integer(n) => n != &Symbol::integer(-1),
-                                _ => false,
-                            });
-
-                        match possible_integer_factor {
-                            Some(expression) => match expression {
-                                Expression::Integer(integer_base) => {
-                                    let base_value = integer_base.value().unwrap() as f64;
-                                    let exponent_value = integer_exponent.value().unwrap() as f64;
-                                    let power_value = (base_value).powf(exponent_value) as isize;
-                                    factor_vec.push(Symbol::integer(power_value).expr());
-                                }
-                                _ => { /* nothing to do */ }
-                            },
-                            _ => { /* nothing to do */ }
-                        };
-
-                        /* remaining factors */
-                        let other_factors: Vec<Expression> =
-                            base_factors.get(&|factor| match factor {
+                            })
+                        {
+                            let other_factors = exponent_factors.get(&|factor| match factor {
                                 Expression::Real(_) => false,
                                 _ => true,
                             });
-
-                        if !other_factors.is_empty() {
-                            factor_vec.push(Expression::Power(AssociativeOperation::new(
+                            return Expression::power(
+                                Expression::power(base, real_exponent_factor), /* Recursion: int to real */
                                 Expression::multiplication(other_factors),
-                                exponent,
-                            )));
+                            );
                         }
-
-                        return Expression::multiplication(factor_vec);
-                    } /* end - match multiplication */
-                    _ => { /* nothing to do */ }
+                        if let Some(integer_exponent_factor) =
+                            exponent_factors.get_one(&|factor| match factor {
+                                Expression::Integer(_) => true,
+                                _ => false,
+                            })
+                        {
+                            let other_factors = exponent_factors.get(&|factor| match factor {
+                                Expression::Integer(_) => false,
+                                _ => true,
+                            });
+                            return Expression::power(
+                                Expression::power(base, integer_exponent_factor), /* Recursion: int to int */
+                                Expression::multiplication(other_factors),
+                            );
+                        }
+                    }
+                    _ => {}
                 }
             }
-            Expression::Real(real_exponent) => {
-                if real_exponent == &Symbol::real(1.0) {
-                    return base;
-                }
-                if real_exponent == &Symbol::real(0.0) {
-                    return Symbol::integer(1).expr();
-                }
+            _ => {}
+        }
 
-                match &base {
-                    Expression::Real(real_base) => {
+        match &base {
+            Expression::Real(real_base) => {
+                match &exponent {
+                    /* Simplification (Real to Real) */
+                    Expression::Real(real_exponent) => {
                         let base_value = real_base.value().unwrap();
                         let exponent_value = real_exponent.value().unwrap();
                         let power_value = (base_value).powf(exponent_value);
                         return Symbol::real(power_value).expr();
                     }
-                    Expression::Multiplication(base_factors) => {
-                        let mut factor_vec: Vec<Expression> = Vec::new();
-
-                        /* real */
-                        let possible_real_factor: Option<Expression> =
-                            base_factors.get_one(&|factor| match factor {
+                    /* Simplification (Real to Integer) */
+                    Expression::Integer(integer_exponent) => {
+                        let base_value: f64 = real_base.value().unwrap();
+                        let exp_value: f64 = integer_exponent.value().unwrap() as f64;
+                        return Symbol::real(base_value.powf(exp_value)).expr();
+                    }
+                    /* Simplification (Real to multiplication with Integer or Real) */
+                    Expression::Multiplication(exponent_factors) => {
+                        if let Some(real_exponent_factor) =
+                            exponent_factors.get_one(&|factor| match factor {
                                 Expression::Real(_) => true,
                                 _ => false,
-                            });
-
-                        match possible_real_factor {
-                            Some(expression) => match expression {
-                                Expression::Real(real_base) => {
-                                    let base_value = real_base.value().unwrap();
-                                    let exponent_value = real_exponent.value().unwrap();
-                                    let power_value = (base_value).powf(exponent_value);
-                                    factor_vec.push(Symbol::real(power_value).expr());
-                                }
-                                _ => { /* nothing to do */ }
-                            },
-                            _ => { /* nothing to do */ }
-                        };
-
-                        /* remaining factors */
-                        let other_factors: Vec<Expression> =
-                            base_factors.get(&|factor| match factor {
+                            })
+                        {
+                            let other_factors = exponent_factors.get(&|factor| match factor {
                                 Expression::Real(_) => false,
                                 _ => true,
                             });
-
-                        if !other_factors.is_empty() {
-                            factor_vec.push(Expression::Power(AssociativeOperation::new(
+                            return Expression::power(
+                                Expression::power(base, real_exponent_factor), /* Recursion: real to real */
                                 Expression::multiplication(other_factors),
-                                exponent,
-                            )));
+                            );
                         }
-
-                        return Expression::multiplication(factor_vec);
-                    } /* end - match multiplication */
-                    _ => { /* nothing to do */ }
+                        if let Some(integer_exponent_factor) =
+                            exponent_factors.get_one(&|factor| match factor {
+                                Expression::Integer(_) => true,
+                                _ => false,
+                            })
+                        {
+                            let other_factors = exponent_factors.get(&|factor| match factor {
+                                Expression::Integer(_) => false,
+                                _ => true,
+                            });
+                            return Expression::power(
+                                Expression::power(base, integer_exponent_factor), /* Recursion: real to int */
+                                Expression::multiplication(other_factors),
+                            );
+                        }
+                    }
+                    _ => {}
                 }
             }
-            _ => { /* nothing to do */ }
-        } /* matcher for exponent */
+            _ => {}
+        }
+
+        /* default constructor */
         return Expression::Power(AssociativeOperation::new(base, exponent));
     }
 

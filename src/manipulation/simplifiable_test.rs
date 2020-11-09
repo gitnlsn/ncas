@@ -82,7 +82,6 @@ mod multiplication_common_factors {
 
         let test = (((a + a) * b) / (a * b).pow(two.clone())).simplify();
         let expected = Symbol::integer(2).expr() / (a * b);
-        println!("{}\n{}",test, expected);
         assert_eq!(test, expected);
     }
 }
@@ -119,6 +118,7 @@ mod power_log {
         let one = &Symbol::integer(1).expr();
         let two = &Symbol::integer(2).expr();
         let four = &Symbol::integer(4).expr();
+        let sixteen = &Symbol::integer(16).expr();
 
         let test = Expression::power(a + one, Expression::logarithm(a + a, a + one)).simplify();
         let expected = two * a;
@@ -131,10 +131,9 @@ mod power_log {
 
         let test = Expression::power(
             a + one,
-            Expression::logarithm(Expression::power((a + a) * (a + a), a + a), a + one),
-        )
-        .simplify();
-        let expected = Expression::power(four * (a.clone().pow(two.clone())), two * a);
+            Expression::logarithm(Expression::power(four * a, two * a), a + one),
+        );
+        let expected = sixteen.clone().pow(a.clone()) * a.clone().pow(two * a);
         assert_eq!(test, expected);
     }
 }

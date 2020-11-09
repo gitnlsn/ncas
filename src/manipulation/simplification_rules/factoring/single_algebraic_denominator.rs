@@ -7,10 +7,9 @@ impl Rule for SingleAlgebraicDenominator {
     fn apply(expression: &Expression) -> Expression {
         match expression {
             Expression::Multiplication(factors) => {
-                let algebraic_denominators = factors.get(&|factor| match factor {
-                    Expression::Power(power) => match power.argument() {
-                        Expression::Integer(_) => false,
-                        _ => match power.modifier() {
+                let denominators: Vec<Expression> = factors
+                    .get(&|factor| match factor {
+                        Expression::Power(power) => match power.modifier() {
                             Expression::Integer(n) => n < Symbol::integer(0),
                             Expression::Multiplication(power_factors) => {
                                 match power_factors.get_one(&|factor| match factor {
@@ -23,11 +22,57 @@ impl Rule for SingleAlgebraicDenominator {
                             }
                             _ => false,
                         },
+                        _ => false,
+                    })
+                    .iter()
+                    .map(|denominator| match denominator {
+                        Expression::Power(power) => match power.modifier() {
+                            Expression::Integer(n) => {
+                                return power.argument().pow((n * Symbol::integer(-1)).expr())
+                            }
+                            Expression::Multiplication(power_factors) => {
+                                return Expression::multiplication(power_factors.map(&|factor| {
+                                    match factor {
+                                        Expression::Integer(n) => {
+                                            return power
+                                                .argument()
+                                                .pow((n * Symbol::integer(-1)).expr())
+                                        }
+                                        _ => return factor.clone(),
+                                    }
+                                }))
+                            }
+                            _ => return denominator.clone(),
+                        },
+                        _ => denominator.clone(),
+                    })
+                    .collect();
+
+                let mut other_factors = factors.get(&|factor| match factor {
+                    Expression::Power(power) => match power.modifier() {
+                        Expression::Integer(n) => n > Symbol::integer(0),
+                        Expression::Multiplication(power_factors) => {
+                            match power_factors.get_one(&|factor| match factor {
+                                Expression::Integer(n) => return n < &Symbol::integer(0),
+                                _ => return false,
+                            }) {
+                                Some(_) => return false,
+                                None => return true,
+                            }
+                        }
+                        _ => true,
                     },
-                    _ => false,
+                    _ => true,
                 });
 
-                return expression.clone();
+                let mut factors: Vec<Expression> = Vec::new();
+                factors.append(&mut other_factors);
+                factors.push(Expression::power(
+                    Expression::multiplication(denominators),
+                    Symbol::integer(-1).expr(),
+                ));
+
+                return Expression::multiplication(factors);
             }
             _ => return expression.clone(),
         }

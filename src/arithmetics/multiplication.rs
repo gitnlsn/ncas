@@ -19,10 +19,12 @@ impl Expression {
             })
             .collect();
 
+        /* factors to parse */
         let mut pending_factors: Vec<Expression> = factors.iter().cloned().collect();
+        /* factors that builds multiplication */
         let mut items_vec: Vec<Expression> = Vec::new();
-        let mut integer: Symbol<BigInt> = Symbol::integer(1);
-        let mut real: Symbol<f64> = Symbol::real(1.0);
+        let mut integer: Symbol<BigInt> = Symbol::integer(1); /* integer part */
+        let mut real: Symbol<f64> = Symbol::real(1.0); /* real part */
 
         while !pending_factors.is_empty() {
             let factor = &pending_factors.pop().unwrap();
@@ -54,6 +56,13 @@ impl Expression {
                     items_vec.push(factor.clone());
                 }
             }
+        }
+
+        if integer < Symbol::integer(-1) && real != Symbol::real(1.0) {
+            let real_value = real.value().unwrap();
+            let integer_value = integer.value().unwrap();
+            real = Symbol::real(real_value * (integer_value * -1) as f64);
+            integer = Symbol::integer(-1);
         }
 
         if integer != Symbol::integer(1) {
