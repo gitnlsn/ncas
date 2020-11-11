@@ -58,8 +58,8 @@ pub mod manipulation {
         pub mod rule;
         pub mod multiplicative_distributive;
         mod multiplicative_distributive_test;
-        pub mod power_distributive;
-        mod power_distributive_test;
+        pub mod power_distributive_addition;
+        pub mod power_distributive_multiplication;
     }
 //     // pub mod replaceable;
 }

@@ -5,7 +5,7 @@ use crate::{
     base::expression::Expression,
     manipulation::expansion_rules::{
         multiplicative_distributive::MultiplicativeDistributive,
-        power_distributive::PowerDistributive, rule::Rule,
+        power_distributive_addition::PowerDistributiveAddition, rule::Rule,
     },
 };
 
@@ -23,7 +23,7 @@ impl Expression {
             }
 
             Expression::Power(power) => {
-                return PowerDistributive::apply(&Expression::power(
+                return PowerDistributiveAddition::apply(&Expression::power(
                     power.argument().expand(),
                     power.modifier().expand(),
                 ));
