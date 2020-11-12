@@ -8,6 +8,30 @@ impl Expression {
      *  - keeps signal separated
      */
     pub fn power(base: Expression, exponent: Expression) -> Expression {
+        match &base {
+            Expression::Integer(n) => {
+                /* Identity (power 0 base) */
+                if n == &Symbol::integer(0) {
+                    return base;
+                }
+                /* Identity (power 1 base) */
+                if n == &Symbol::integer(1) {
+                    return base;
+                }
+            }
+            Expression::Real(r) => {
+                /* Identity (power 0.0 base) */
+                if r == &Symbol::real(0.0) {
+                    return base;
+                }
+                /* Identity (power 1.0 base) */
+                if r == &Symbol::real(1.0) {
+                    return base;
+                }
+            }
+            _ => {}
+        }
+
         match &exponent {
             Expression::Integer(integer_exponent) => {
                 /* Identity (power 1 exponent) */
@@ -40,11 +64,40 @@ impl Expression {
                     Expression::multiplication(vec![power.modifier(), exponent]),
                 );
             }
-            // Distributive: (a * b) ^ c == a ^ c * b ^ c
+            _ => {}
+        }
+
+        match &base {
+            // Distributive on numerical symbols
             Expression::Multiplication(base_factors) => {
-                return Expression::multiplication(
-                    base_factors.map(&|factor| Expression::power(factor.clone(), exponent.clone())),
-                );
+                let mut numerical_factors: Vec<Expression> = base_factors
+                    .get(&|factor| match factor {
+                        Expression::Integer(_) => true,
+                        Expression::Real(_) => true,
+                        _ => false,
+                    })
+                    .iter()
+                    .cloned()
+                    .map(|factor| Expression::power(factor, exponent.clone()))
+                    .collect();
+
+                if !numerical_factors.is_empty() {
+                    let other_factors: Vec<Expression> = base_factors.get(&|factor| match factor {
+                        Expression::Integer(_) => false,
+                        Expression::Real(_) => false,
+                        _ => true,
+                    });
+
+                    let mut returnable_factors: Vec<Expression> = Vec::new();
+
+                    returnable_factors.append(&mut numerical_factors);
+                    returnable_factors.push(Expression::power(
+                        Expression::multiplication(other_factors),
+                        exponent.clone(),
+                    ));
+
+                    return Expression::multiplication(returnable_factors);
+                }
             }
             _ => {}
         }
